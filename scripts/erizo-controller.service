@@ -1,0 +1,19 @@
+[Unit]
+Description=Licode Erizo Controller Running Node.js
+# might have to revisit this if we run nuve and this on separate machines? Maybe depending on rabbitmq is a better idea
+Requires=nuve.service rabbitmq-server.service 
+After=network.target rabbitmq-server.service nuve.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+ExecStart=/bin/bash "${LICODE_HOME}/scripts/start-erizo-controller.sh"
+Restart=always
+RestartSec=10s                       
+StandardOutput=syslog               
+StandardError=syslog                
+SyslogIdentifier=licode-erizo-controller
+User=nobody
+Group=nogroup
+Environment=LICODE_HOME=/opt/licode
