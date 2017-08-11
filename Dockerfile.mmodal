@@ -1,0 +1,25 @@
+FROM licode-mmodal-base
+
+MAINTAINER MModal
+
+COPY . /opt/licode
+WORKDIR /opt/licode
+
+# Clone and install licode
+WORKDIR /opt/licode/scripts
+
+RUN ./installUbuntuDeps.sh --enable-gpl
+RUN ./installErizo.sh
+RUN ../nuve/installNuve.sh
+RUN ./installBasicExample.sh
+
+WORKDIR /opt
+
+#ENTRYPOINT ["./licode/extras/docker/initDockerLicode.sh"]
+
+RUN systemctl enable /opt/licode/scripts/nuve.service
+RUN systemctl enable /opt/licode/scripts/erizo-controller.service
+RUN systemctl enable /opt/licode/scripts/erizo-agent.service
+
+RUN ln -s /opt/licode/scripts/10-licode.conf /etc/rsyslog.d/10-licode.conf
+RUN service rsyslog restart
