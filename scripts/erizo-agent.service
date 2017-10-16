@@ -1,7 +1,7 @@
 [Unit]
 Description=Licode Erizo Agent Running Node.js - Provides Licode MCU
-Requires=rabbitmq-server.service erizo-controller.service
-After=network.target rabbitmq-server.service erizo-controller.service
+Requires=rabbitmq-server.service
+After=network.target rabbitmq-server.service
 
 [Install]
 WantedBy=multi-user.target
