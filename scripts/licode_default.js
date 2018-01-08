@@ -80,6 +80,8 @@ config.erizoController.listen_port = 8080; //default value: 8080
 // Use the name of the inferface you want to bind to for websockets
 // config.erizoController.networkInterface = 'eth1' // default value: undefined
 
+config.erizoController.exitOnNuveCheckFail = false;  // default value: false
+
 config.erizoController.warning_n_rooms = 15; // default value: 15
 config.erizoController.limit_n_rooms = 20; // default value: 20
 config.erizoController.interval_time_keepAlive = 1000; // default value: 1000
@@ -131,6 +133,9 @@ config.erizoAgent.networkinterface = ''; //default value: ''
 //Use individual log files for each of the started erizoJS processes
 //This files will be named erizo-ERIZO_ID_HASH.log
 config.erizoAgent.useIndividualLogFiles = false;
+
+// If true this Agent will launch Debug versions of ErizoJS
+config.erizoAgent.launchDebugErizoJS = false;
 
 // Custom log directory for agent instance log files.
 // If useIndividualLogFiles is enabled, files will go here

@@ -289,12 +289,12 @@ It gets the URL of an image frame from the video.
 
 ## Update the spec of a stream
 
-It updates the audio and video maximum bandwidth for a publisher.
+It updates the audio and video maximum bandwidth for a publisher or a subscriber (it will affect other subscribers when Simulcast is not used).
 
 It can also be used in remote streams to toggle `slideShowMode`
 
 <example>
-You can update the maximun bandwidth of video and audio. These values are defined in the object passed to the function. You can also pass a callback function to get the final result.
+You can update the maximum bandwidth of video and audio. These values are defined in the object passed to the function. You can also pass a callback function to get the final result.
 </example>
 
 ```
@@ -389,6 +389,12 @@ room.addEventListener("stream-added", function(event) {
 room.publish(localStream, {maxVideoBW:300});
 ```
 
+We can also force the client to use a TURN server when publishing by setting the next parameter:
+
+```
+room.publish(localStream, {forceTurn: true});
+```
+
 In `room.publish` you can include a callback with two parameters, `id` and `error`. If the stream has been published, `id` contains the id of that stream. On the other hand, if there has been any kind of error, `id` is `undefined` and the error is described in `error`.
 
 <example>
@@ -450,6 +456,12 @@ room.addEventListener("stream-subscribed", function(streamEvt) {
 room.subscribe(stream, {audio: true, video: false});
 ```
 
+We can also force the client to use a TURN server when subscribing by setting the next parameter:
+
+```
+room.publish(localStream, {forceTurn: true});
+```
+
 In `room.subscribe` you can include a callback with two parameters, `result` and `error`. If the stream has been subscribed, `result` is true. On the other hand, if there has been any kind of error, `result` is `undefined` and the error is described in `error`.
 
 <example>
@@ -480,6 +492,20 @@ room.subscribe(stream, {audio: true, video: true, slideShowMode:true}, function(
 
 `SlideShowMode` can also be toggled on or off using `stream.updateConfiguration`. Keep in mind this will only work on remote streams (subscriptions).
 
+When we enable Simulcast it is also interesting to specify whether the subscriber should not receive a resolution or frame rate beyond a maximum. We
+can configure it like in the example below:
+
+```
+room.subscribe(stream, {video: {height: {max: 480}, width: {max: 640}, frameRate: {max:20}}}, function(result, error){
+  if (result === undefined){
+    console.log("Error subscribing to stream", error);
+  } else {
+    console.log("Stream subscribed!");
+  }
+});
+```
+
+It would help us not wasting CPU or bandwidth if, for instance, we will not render videos in a <video> element bigger than 640x480.
 
 ## Unsubscribe from a remote stream
 

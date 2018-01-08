@@ -1,8 +1,7 @@
-/* global window, document, webkitURL, L */
+/* global document, L */
 
 import View from './View';
 import Bar from './Bar';
-import Logger from '../utils/Logger';
 
 /*
  * VideoPlayer represents a Licode video component that shows either a local or a remote video.
@@ -76,10 +75,6 @@ const VideoPlayer = (spec) => {
       document.getElementById(key).value = unescape(value);
   }); */
 
-  Logger.debug(`Creating URL from stream ${that.stream}`);
-  const myURL = window.URL || webkitURL;
-  that.streamUrl = myURL.createObjectURL(that.stream);
-
   // Container
   that.div = document.createElement('div');
   that.div.setAttribute('id', `player_${that.id}`);
@@ -103,6 +98,7 @@ const VideoPlayer = (spec) => {
   that.video.setAttribute('class', 'licode_stream');
   that.video.setAttribute('style', 'width: 100%; height: 100%; position: absolute');
   that.video.setAttribute('autoplay', 'autoplay');
+  that.video.setAttribute('playsinline', 'playsinline');
 
   if (spec.stream.local) { that.video.volume = 0; }
 
@@ -150,7 +146,7 @@ const VideoPlayer = (spec) => {
     that.media = that.video;
   }
 
-  that.video.src = that.streamUrl;
+  that.video.srcObject = that.stream;
 
   return that;
 };

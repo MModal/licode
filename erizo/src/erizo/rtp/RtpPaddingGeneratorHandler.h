@@ -13,7 +13,7 @@
 
 namespace erizo {
 
-class WebRtcConnection;
+class MediaStream;
 
 class RtpPaddingGeneratorHandler: public Handler, public std::enable_shared_from_this<RtpPaddingGeneratorHandler> {
   DECLARE_LOGGER();
@@ -28,15 +28,15 @@ class RtpPaddingGeneratorHandler: public Handler, public std::enable_shared_from
     return "padding-generator";
   }
 
-  void read(Context *ctx, std::shared_ptr<dataPacket> packet) override;
-  void write(Context *ctx, std::shared_ptr<dataPacket> packet) override;
+  void read(Context *ctx, std::shared_ptr<DataPacket> packet) override;
+  void write(Context *ctx, std::shared_ptr<DataPacket> packet) override;
   void notifyUpdate() override;
 
  private:
-  void sendPaddingPacket(std::shared_ptr<dataPacket> packet, uint8_t padding_size);
-  void onPacketWithMarkerSet(std::shared_ptr<dataPacket> packet);
-  bool isHigherSequenceNumber(std::shared_ptr<dataPacket> packet);
-  void onVideoPacket(std::shared_ptr<dataPacket> packet);
+  void sendPaddingPacket(std::shared_ptr<DataPacket> packet, uint8_t padding_size);
+  void onPacketWithMarkerSet(std::shared_ptr<DataPacket> packet);
+  bool isHigherSequenceNumber(std::shared_ptr<DataPacket> packet);
+  void onVideoPacket(std::shared_ptr<DataPacket> packet);
 
   uint64_t getStat(std::string stat_name);
   uint64_t getTargetBitrate();
@@ -50,7 +50,7 @@ class RtpPaddingGeneratorHandler: public Handler, public std::enable_shared_from
  private:
   std::shared_ptr<erizo::Clock> clock_;
   SequenceNumberTranslator translator_;
-  WebRtcConnection* connection_;
+  MediaStream* stream_;
   std::shared_ptr<Stats> stats_;
   uint64_t max_video_bw_;
   uint16_t higher_sequence_number_;

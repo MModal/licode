@@ -1,4 +1,6 @@
 /* global RTCSessionDescription, RTCIceCandidate, RTCPeerConnection */
+// eslint-disable-next-line
+import SemanticSdp from '../../../common/semanticSdp/SemanticSdp';
 
 import SdpHelpers from '../utils/SdpHelpers';
 import Logger from '../utils/Logger';
@@ -8,6 +10,8 @@ const BaseStack = (specInput) => {
   const specBase = specInput;
   let localDesc;
   let remoteDesc;
+  let localSdp;
+  let remoteSdp;
 
   Logger.info('Starting Base stack', specBase);
 
@@ -18,6 +22,9 @@ const BaseStack = (specInput) => {
   that.con = {};
   if (specBase.iceServers !== undefined) {
     that.pcConfig.iceServers = specBase.iceServers;
+  }
+  if (specBase.forceTurn === true) {
+    that.pcConfig.iceTransportPolicy = 'relay';
   }
   if (specBase.audio === undefined) {
     specBase.audio = true;
@@ -84,7 +91,10 @@ const BaseStack = (specInput) => {
     if (!isSubscribe) {
       localDesc.sdp = that.enableSimulcast(localDesc.sdp);
     }
-    localDesc.sdp = SdpHelpers.setMaxBW(localDesc.sdp, specBase);
+    localSdp = SemanticSdp.SDPInfo.processString(localDesc.sdp);
+    SdpHelpers.setMaxBW(localSdp, specBase);
+    localDesc.sdp = localSdp.toString();
+
     specBase.callback({
       type: localDesc.type,
       sdp: localDesc.sdp,
@@ -93,7 +103,9 @@ const BaseStack = (specInput) => {
 
   const setLocalDescForAnswerp2p = (sessionDescription) => {
     localDesc = sessionDescription;
-    localDesc.sdp = SdpHelpers.setMaxBW(localDesc.sdp, specBase);
+    localSdp = SemanticSdp.SDPInfo.processString(localDesc.sdp);
+    SdpHelpers.setMaxBW(localSdp, specBase);
+    localDesc.sdp = localSdp.toString();
     specBase.callback({
       type: localDesc.type,
       sdp: localDesc.sdp,
@@ -106,7 +118,9 @@ const BaseStack = (specInput) => {
   const processOffer = (message) => {
     // Its an offer, we assume its p2p
     const msg = message;
-    msg.sdp = SdpHelpers.setMaxBW(msg.sdp, specBase);
+    remoteSdp = SemanticSdp.SDPInfo.processString(msg.sdp);
+    SdpHelpers.setMaxBW(remoteSdp, specBase);
+    msg.sdp = remoteSdp.toString();
     that.peerConnection.setRemoteDescription(msg).then(() => {
       that.peerConnection.createAnswer(that.mediaConstraints)
       .then(setLocalDescForAnswerp2p).catch(errorCallback.bind(null, 'createAnswer p2p', undefined));
@@ -120,7 +134,9 @@ const BaseStack = (specInput) => {
     Logger.debug('Remote Description', msg.sdp);
     Logger.debug('Local Description', localDesc.sdp);
 
-    msg.sdp = SdpHelpers.setMaxBW(msg.sdp, specBase);
+    remoteSdp = SemanticSdp.SDPInfo.processString(msg.sdp);
+    SdpHelpers.setMaxBW(remoteSdp, specBase);
+    msg.sdp = remoteSdp.toString();
 
     remoteDesc = msg;
     that.peerConnection.setLocalDescription(localDesc).then(() => {
@@ -218,29 +234,36 @@ const BaseStack = (specInput) => {
         specBase.maxAudioBW = config.maxAudioBW;
       }
 
-      localDesc.sdp = SdpHelpers.setMaxBW(localDesc.sdp, specBase);
+      localSdp = SemanticSdp.SDPInfo.processString(localDesc.sdp);
+      SdpHelpers.setMaxBW(localSdp, specBase);
+      localDesc.sdp = localSdp.toString();
+
       if (config.Sdp || config.maxAudioBW) {
         Logger.debug('Updating with SDP renegotiation', specBase.maxVideoBW, specBase.maxAudioBW);
-        that.peerConnection.setLocalDescription(localDesc).then(() => {
-          remoteDesc.sdp = SdpHelpers.setMaxBW(remoteDesc.sdp, specBase);
-          that.peerConnection.setRemoteDescription(new RTCSessionDescription(remoteDesc))
+        that.peerConnection.setLocalDescription(localDesc)
           .then(() => {
+            remoteSdp = SemanticSdp.SDPInfo.processString(remoteDesc.sdp);
+            SdpHelpers.setMaxBW(remoteSdp, specBase);
+            remoteDesc.sdp = remoteSdp.toString();
+            return that.peerConnection.setRemoteDescription(new RTCSessionDescription(remoteDesc));
+          }).then(() => {
             specBase.remoteDescriptionSet = true;
             specBase.callback({ type: 'updatestream', sdp: localDesc.sdp });
-          }).catch(errorCallback.bind(null, 'updateSpec', undefined));
-        }).catch(errorCallback.bind(null, 'updateSpec', callback));
+          }).catch(errorCallback.bind(null, 'updateSpec', callback));
       } else {
         Logger.debug('Updating without SDP renegotiation, ' +
-                                'newVideoBW:', specBase.maxVideoBW,
-                                'newAudioBW:', specBase.maxAudioBW);
+                     'newVideoBW:', specBase.maxVideoBW,
+                     'newAudioBW:', specBase.maxAudioBW);
         specBase.callback({ type: 'updatestream', sdp: localDesc.sdp });
       }
     }
     if (config.minVideoBW || (config.slideShowMode !== undefined) ||
-            (config.muteStream !== undefined) || (config.qualityLayer !== undefined)) {
+            (config.muteStream !== undefined) || (config.qualityLayer !== undefined) ||
+            (config.video !== undefined)) {
       Logger.debug('MinVideo Changed to ', config.minVideoBW);
       Logger.debug('SlideShowMode Changed to ', config.slideShowMode);
       Logger.debug('muteStream changed to ', config.muteStream);
+      Logger.debug('Video Constraints', config.video);
       specBase.callback({ type: 'updatestream', config });
     }
   };

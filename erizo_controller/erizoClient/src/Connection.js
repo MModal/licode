@@ -43,8 +43,8 @@ const buildConnection = (specInput) => {
     Logger.debug('Firefox Stack');
     that = FirefoxStack(spec);
   } else if (that.browser === 'safari') {
-    Logger.debug('Safari using Firefox Stack');
-    that = FirefoxStack(spec);
+    Logger.debug('Safari using Chrome Stable Stack');
+    that = ChromeStableStack(spec);
   } else if (that.browser === 'chrome-stable' || that.browser === 'electron') {
     Logger.debug('Chrome Stable Stack');
     that = ChromeStableStack(spec);
@@ -85,7 +85,9 @@ const GetUserMedia = (config, callback = () => {}, error = () => {}) => {
         screenConfig = {};
         if (config.video !== undefined) {
           screenConfig.video = config.video;
-          screenConfig.video.mediaSource = 'window' || 'screen';
+          if (!screenConfig.video.mediaSource) {
+            screenConfig.video.mediaSource = 'window' || 'screen';
+          }
         } else {
           screenConfig = {
             audio: config.audio,
@@ -125,7 +127,7 @@ const GetUserMedia = (config, callback = () => {}, error = () => {}) => {
                 }
                 const theId = response.streamId;
                 if (config.video.mandatory !== undefined) {
-                  screenConfig.video = config.video;
+                  screenConfig.video = config.video || { mandatory: {} };
                   screenConfig.video.mandatory.chromeMediaSource = 'desktop';
                   screenConfig.video.mandatory.chromeMediaSourceId = theId;
                 } else {

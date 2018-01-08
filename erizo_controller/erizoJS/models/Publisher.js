@@ -2,26 +2,31 @@
 'use strict';
 var addon = require('./../../../erizoAPI/build/Release/addon');
 var logger = require('./../../common/logger').logger;
+var Helpers = require('./Helpers');
 
 // Logger
 var log = logger.getLogger('Publisher');
 
-function createWrtc(id, threadPool, ioThreadPool) {
+function createWrtc(id, threadPool, ioThreadPool, mediaConfiguration) {
   var wrtc = new addon.WebRtcConnection(threadPool, ioThreadPool, id,
-                                    GLOBAL.config.erizo.stunserver,
-                                    GLOBAL.config.erizo.stunport,
-                                    GLOBAL.config.erizo.minport,
-                                    GLOBAL.config.erizo.maxport,
+                                    global.config.erizo.stunserver,
+                                    global.config.erizo.stunport,
+                                    global.config.erizo.minport,
+                                    global.config.erizo.maxport,
                                     false,
-                                    JSON.stringify(GLOBAL.mediaConfig),
-                                    GLOBAL.config.erizo.useNicer,
-                                    GLOBAL.config.erizo.turnserver,
-                                    GLOBAL.config.erizo.turnport,
-                                    GLOBAL.config.erizo.turnusername,
-                                    GLOBAL.config.erizo.turnpass,
-                                    GLOBAL.config.erizo.networkinterface);
-
+                                    Helpers.getMediaConfiguration(mediaConfiguration),
+                                    global.config.erizo.useNicer,
+                                    global.config.erizo.turnserver,
+                                    global.config.erizo.turnport,
+                                    global.config.erizo.turnusername,
+                                    global.config.erizo.turnpass,
+                                    global.config.erizo.networkinterface);
   return wrtc;
+}
+
+function createMediaStream (wrtc, id) {
+  var mediaStream = new addon.MediaStream(wrtc, id);
+  return mediaStream;
 }
 
 class Source {
@@ -45,16 +50,25 @@ class Source {
     log.info('message: Adding subscriber, id: ' + wrtcId + ', ' +
              logger.objectToLog(options)+
               ', ' + logger.objectToLog(options.metadata));
-    var wrtc = createWrtc(wrtcId, this.threadPool, this.ioThreadPool);
+    var wrtc = createWrtc(wrtcId, this.threadPool, this.ioThreadPool, options.mediaConfiguration);
     wrtc.wrtcId = wrtcId;
+    wrtc.mediaConfiguration = options.mediaConfiguration;
+    wrtc.mediaStream = createMediaStream(wrtc, id);
+    wrtc.addMediaStream(wrtc.mediaStream);
     this.subscribers[id] = wrtc;
-    this.muxer.addSubscriber(wrtc, id);
-    wrtc.minVideoBW = this.minVideoBW;
+    this.muxer.addSubscriber(wrtc.mediaStream, id);
+    wrtc.mediaStream.minVideoBW = this.minVideoBW;
     log.debug('message: Setting scheme from publisher to subscriber, ' +
               'id: ' + wrtcId + ', scheme: ' + this.scheme+
                ', ' + logger.objectToLog(options.metadata));
     wrtc.scheme = this.scheme;
-    this.muteSubscriberStream(id, false, false);
+    const muteVideo = (options.muteStream && options.muteStream.video) || false;
+    const muteAudio = (options.muteStream && options.muteStream.audio) || false;
+    this.muteSubscriberStream(id, muteVideo, muteAudio);
+    if (options.video) {
+      this.setVideoConstraints(id,
+        options.video.width, options.video.height, options.video.frameRate);
+    }
   }
 
   removeSubscriber(id) {
@@ -70,10 +84,11 @@ class Source {
     return this.subscribers[id] !== undefined;
   }
 
-  addExternalOutput(url) {
+  addExternalOutput(url, options) {
     var eoId = url + '_' + this.id;
     log.info('message: Adding ExternalOutput, id: ' + eoId);
-    var externalOutput = new addon.ExternalOutput(url);
+    var externalOutput = new addon.ExternalOutput(url,
+      Helpers.getMediaConfiguration(options.mediaConfiguration));
     externalOutput.wrtcId = eoId;
     externalOutput.init();
     this.muxer.addExternalOutput(externalOutput, url);
@@ -110,7 +125,7 @@ class Source {
     var subscriber = this.getSubscriber(id);
     log.info('message: setQualityLayer, spatialLayer: ', spatialLayer,
                                      ', temporalLayer: ', temporalLayer);
-    subscriber.setQualityLayer(spatialLayer, temporalLayer);
+    subscriber.mediaStream.setQualityLayer(spatialLayer, temporalLayer);
   }
 
   muteSubscriberStream(id, muteVideo, muteAudio) {
@@ -119,8 +134,16 @@ class Source {
     subscriber.muteAudio = muteAudio;
     log.info('message: Mute Stream, video: ', this.muteVideo || muteVideo,
                                  ', audio: ', this.muteAudio || muteAudio);
-    subscriber.muteStream(this.muteVideo || muteVideo,
+    subscriber.mediaStream.muteStream(this.muteVideo || muteVideo,
                           this.muteAudio || muteAudio);
+  }
+
+  setVideoConstraints(id, width, height, frameRate) {
+    var subscriber = this.getSubscriber(id);
+    var maxWidth = (width && width.max !== undefined) ? width.max : -1;
+    var maxHeight = (height && height.max !== undefined) ? height.max : -1;
+    var maxFrameRate = (frameRate && frameRate.max !== undefined) ? frameRate.max : -1;
+    subscriber.mediaStream.setVideoConstraints(maxWidth, maxHeight, maxFrameRate);
   }
 
   enableHandlers(id, handlers) {
@@ -130,7 +153,7 @@ class Source {
     }
     if (wrtc) {
       for (var index in handlers) {
-        wrtc.enableHandler(handlers[index]);
+        wrtc.mediaStream.enableHandler(handlers[index]);
       }
     }
   }
@@ -142,7 +165,7 @@ class Source {
     }
     if (wrtc) {
       for (var index in handlers) {
-        wrtc.disableHandler(handlers[index]);
+        wrtc.mediaStream.disableHandler(handlers[index]);
       }
     }
   }
@@ -151,25 +174,35 @@ class Source {
 class Publisher extends Source {
   constructor(id, threadPool, ioThreadPool, options) {
     super(id, threadPool, ioThreadPool);
-    this.wrtc = createWrtc(this.id, this.threadPool, this.ioThreadPool);
+    this.mediaConfiguration = options.mediaConfiguration;
+    this.wrtc = createWrtc(this.id, this.threadPool, this.ioThreadPool, options.mediaConfiguration);
     this.wrtc.wrtcId = id;
+    this.wrtc.mediaConfiguration = options.mediaConfiguration;
+
+    this.wrtc.mediaStream = createMediaStream(this.wrtc, this.wrtc.wrtcId);
+    this.wrtc.addMediaStream(this.wrtc.mediaStream);
 
     this.minVideoBW = options.minVideoBW;
     this.scheme = options.scheme;
 
-    this.wrtc.setAudioReceiver(this.muxer);
-    this.wrtc.setVideoReceiver(this.muxer);
-    this.muxer.setPublisher(this.wrtc);
+    this.wrtc.mediaStream.setAudioReceiver(this.muxer);
+    this.wrtc.mediaStream.setVideoReceiver(this.muxer);
+    this.muxer.setPublisher(this.wrtc.mediaStream);
+    const muteVideo = (options.muteStream && options.muteStream.video) || false;
+    const muteAudio = (options.muteStream && options.muteStream.audio) || false;
+    this.muteStream(muteVideo, muteAudio);
   }
 
   resetWrtc() {
     if (this.numSubscribers > 0) {
       return;
     }
-    this.wrtc = createWrtc(this.id, this.threadPool, this.ioThreadPool);
-    this.wrtc.setAudioReceiver(this.muxer);
-    this.wrtc.setVideoReceiver(this.muxer);
-    this.muxer.setPublisher(this.wrtc);
+    this.wrtc = createWrtc(this.id, this.threadPool, this.ioThreadPool, this.mediaConfiguration);
+    this.wrtc.mediaStream = createMediaStream(this.wrtc, this.wrtc.wrtcId);
+
+    this.wrtc.mediaStream.setAudioReceiver(this.muxer);
+    this.wrtc.mediaStream.setVideoReceiver(this.muxer);
+    this.muxer.setPublisher(this.wrtc.mediaStream);
   }
 }
 

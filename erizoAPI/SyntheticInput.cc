@@ -109,6 +109,7 @@ NAN_METHOD(SyntheticInput::setAudioReceiver) {
   erizo::MediaSink *mr = param->msink;
 
   me->setAudioSink(mr);
+  me->setEventSink(mr);
 }
 
 NAN_METHOD(SyntheticInput::setVideoReceiver) {
@@ -119,13 +120,14 @@ NAN_METHOD(SyntheticInput::setVideoReceiver) {
   erizo::MediaSink *mr = param->msink;
 
   me->setVideoSink(mr);
+  me->setEventSink(mr);
 }
 
 NAN_METHOD(SyntheticInput::setFeedbackSource) {
   SyntheticInput* obj = ObjectWrap::Unwrap<SyntheticInput>(info.Holder());
   std::shared_ptr<erizo::SyntheticInput> me = obj->me;
 
-  WebRtcConnection* param = ObjectWrap::Unwrap<WebRtcConnection>(Nan::To<v8::Object>(info[0]).ToLocalChecked());
+  MediaStream* param = ObjectWrap::Unwrap<MediaStream>(Nan::To<v8::Object>(info[0]).ToLocalChecked());
   erizo::FeedbackSource* fb_source = param->me->getFeedbackSource();
 
   if (fb_source != nullptr) {

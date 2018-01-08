@@ -2,24 +2,26 @@
 const addon = require('./../erizoAPI/build/Release/addon'); // eslint-disable-line import/no-unresolved
 const licodeConfig = require('./../licode_config');
 const mediaConfig = require('./../rtp_media_config');
+const SemanticSdp = require('./../erizo_controller/common/semanticSdp/SemanticSdp');
 const logger = require('./logger').logger;
 
 const log = logger.getLogger('NativeClient');
 
-GLOBAL.config = licodeConfig || {};
-GLOBAL.mediaConfig = mediaConfig || {};
+global.config = licodeConfig || {};
+global.mediaConfig = mediaConfig || {};
 
 const threadPool = new addon.ThreadPool(10);
 threadPool.start();
 
 const ioThreadPool = new addon.IOThreadPool(1);
-if (GLOBAL.config.erizo.useNicer) {
+if (global.config.erizo.useNicer) {
   ioThreadPool.start();
 }
 
 exports.ErizoNativeConnection = (config) => {
   const that = {};
   let wrtc;
+  let mediaStream;
   let syntheticInput;
   let externalInput;
   let oneToMany;
@@ -39,7 +41,7 @@ exports.ErizoNativeConnection = (config) => {
 
   const generatePLIs = () => {
     externalOutput.interval = setInterval(() => {
-      wrtc.generatePLIPacket();
+      mediaStream.generatePLIPacket();
     }, 1000);
   };
 
@@ -64,7 +66,8 @@ exports.ErizoNativeConnection = (config) => {
         case CONN_SDP:
         case CONN_GATHERED:
           setTimeout(() => {
-            initConnectionCallback('callback', { type: 'offer', sdp: mess });
+            const sdp = SemanticSdp.SDPInfo.processString(mess);
+            initConnectionCallback('callback', { type: 'offer', sdp: sdp.toJSON() });
           }, 100);
           break;
 
@@ -105,18 +108,24 @@ exports.ErizoNativeConnection = (config) => {
 
 
   wrtc = new addon.WebRtcConnection(threadPool, ioThreadPool, `spine_${configuration.sessionId}`,
-  GLOBAL.config.erizo.stunserver,
-  GLOBAL.config.erizo.stunport,
-  GLOBAL.config.erizo.minport,
-  GLOBAL.config.erizo.maxport,
+  global.config.erizo.stunserver,
+  global.config.erizo.stunport,
+  global.config.erizo.minport,
+  global.config.erizo.maxport,
   false,
-  JSON.stringify(GLOBAL.mediaConfig),
-  GLOBAL.config.erizo.useNicer,
-  GLOBAL.config.erizo.turnserver,
-  GLOBAL.config.erizo.turnport,
-  GLOBAL.config.erizo.turnusername,
-  GLOBAL.config.erizo.turnpass,
-  GLOBAL.config.erizo.networkinterface);
+  JSON.stringify(global.mediaConfig),
+  global.config.erizo.useNicer,
+  global.config.erizo.turnserver,
+  global.config.erizo.turnport,
+  global.config.erizo.turnusername,
+  global.config.erizo.turnpass,
+  global.config.erizo.networkinterface);
+
+  mediaStream = new addon.MediaStream(wrtc,
+      `spine_${configuration.sessionId}`,
+      JSON.stringify(global.mediaConfig));
+
+  wrtc.addMediaStream(mediaStream);
 
   that.createOffer = () => {
   };
@@ -124,16 +133,16 @@ exports.ErizoNativeConnection = (config) => {
   that.prepareNull = () => {
     log.info('Preparing null output');
     oneToMany = new addon.OneToManyProcessor();
-    wrtc.setVideoReceiver(oneToMany);
-    wrtc.setAudioReceiver(oneToMany);
-    oneToMany.setPublisher(wrtc);
+    mediaStream.setVideoReceiver(oneToMany);
+    mediaStream.setAudioReceiver(oneToMany);
+    oneToMany.setPublisher(mediaStream);
   };
 
   that.prepareVideo = (url) => {
     log.info('Preparing video', url);
     externalInput = new addon.ExternalInput(url);
-    externalInput.setAudioReceiver(wrtc);
-    externalInput.setVideoReceiver(wrtc);
+    externalInput.setAudioReceiver(mediaStream);
+    externalInput.setVideoReceiver(mediaStream);
   };
 
   that.prepareSynthetic = (spec) => {
@@ -142,16 +151,16 @@ exports.ErizoNativeConnection = (config) => {
       spec.audioBitrate,
       spec.minVideoBitrate,
       spec.maxVideoBitrate);
-    syntheticInput.setAudioReceiver(wrtc);
-    syntheticInput.setVideoReceiver(wrtc);
-    syntheticInput.setFeedbackSource(wrtc);
+    syntheticInput.setAudioReceiver(mediaStream);
+    syntheticInput.setVideoReceiver(mediaStream);
+    syntheticInput.setFeedbackSource(mediaStream);
   };
 
   that.prepareRecording = (url) => {
     log.info('Preparing Recording', url);
-    externalOutput = new addon.ExternalOutput(url);
-    wrtc.setVideoReceiver(externalOutput);
-    wrtc.setAudioReceiver(externalOutput);
+    externalOutput = new addon.ExternalOutput(url, JSON.stringify(global.mediaConfig));
+    mediaStream.setVideoReceiver(externalOutput);
+    mediaStream.setAudioReceiver(externalOutput);
   };
 
   that.setRemoteDescription = () => {
@@ -175,7 +184,8 @@ exports.ErizoNativeConnection = (config) => {
     } else if (signalingMsg.type === 'answer') {
       setTimeout(() => {
         log.info('Passing delayed answer');
-        wrtc.setRemoteSdp(signalingMsg.sdp);
+        const sdp = SemanticSdp.SDPInfo.process(signalingMsg.sdp);
+        wrtc.setRemoteSdp(sdp.toString());
         that.onaddstream({ stream: { active: true } });
       }, 10);
     }
@@ -184,11 +194,11 @@ exports.ErizoNativeConnection = (config) => {
   that.getStats = () => {
     log.info('Requesting stats');
     return new Promise((resolve, reject) => {
-      if (!wrtc) {
-        reject('No connection present');
+      if (!mediaStream) {
+        reject('No stream present');
         return;
       }
-      wrtc.getStats((statsString) => {
+      mediaStream.getStats((statsString) => {
         resolve(JSON.parse(statsString));
       });
     });
@@ -210,7 +220,9 @@ exports.ErizoNativeConnection = (config) => {
     }
     that.connected = false;
     wrtc.close();
+    mediaStream.close();
     wrtc = undefined;
+    mediaStream = undefined;
   };
 
   return that;

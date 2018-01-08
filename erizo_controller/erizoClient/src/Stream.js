@@ -282,9 +282,8 @@ const Stream = (altConnection, specInput) => {
     const config = configInput;
     // TODO: Check for any incompatible options
     if (isUpdate === true) {  // We are updating the stream
-      if (config.video || config.audio || config.screen) {
+      if (config.audio || config.screen) {
         Logger.warning('Cannot update type of subscription');
-        config.video = undefined;
         config.audio = undefined;
         config.screen = undefined;
       }
@@ -323,7 +322,9 @@ const Stream = (altConnection, specInput) => {
     }
     const config = { muteStream: { audio: that.audioMuted, video: that.videoMuted } };
     that.checkOptions(config, true);
-    that.pc.updateSpec(config, callback);
+    if (that.pc) {
+      that.pc.updateSpec(config, callback);
+    }
   };
 
   that.muteAudio = (isMuted, callback = () => {}) => {

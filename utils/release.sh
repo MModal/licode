@@ -47,13 +47,15 @@ fi
 mkdir -p ~/.ssh
 ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
+COMMIT=`git rev-list -n 1 HEAD`
 git fetch
+git checkout $COMMIT
 
 CURRENT_RELEASE_MAJOR=`echo "${VERSION}" | sed "s/v//g"`
 PREVIOUS_VERSION=v`expr ${CURRENT_RELEASE_MAJOR} - 1`
 CURRENT_PRERELEASE_MINOR=`git ls-remote --tags | grep pre-${VERSION} | tail -1 | sed "s/.*pre-${VERSION}\.//g"`
 GITHUB_URL="https://api.github.com/repos/lynckia/licode"
-COMMIT=`git rev-list -n 1 HEAD`
+
 SHORT_GIT_HASH=`echo ${COMMIT} | cut -c -7`
 
 curl -s -u ${GITHUB_OAUTH_USER}:${GITHUB_OAUTH_TOKEN} -X GET ${GITHUB_URL}/releases/tags/${VERSION} > /dev/null 2>&1
@@ -86,7 +88,7 @@ if [ "$MODE" = "PRERELEASE" ]; then
   docker push lynckia/licode:${NEXT_PRERELEASE_NAME}
   docker push lynckia/licode:staging
 
-  LOGS=`git log $PREVIOUS_VERSION..$COMMIT --oneline | perl -p -e 's/\n/\\\\n/'`
+  LOGS=`git log $PREVIOUS_VERSION..$COMMIT --oneline | perl -p -e 's/\n/\\\\n/' | sed -e s/\"//g`
   DESCRIPTION="### Detailed PR List:\\n$LOGS"
 
   if [ "$URL" = "null" ]; then

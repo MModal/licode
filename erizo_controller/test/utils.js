@@ -78,7 +78,8 @@ var reset = module.exports.reset = function() {
   };
 
   module.exports.crypto = createMock('crypto', {
-    createHmac: sinon.stub().returns(module.exports.signature)
+    createHmac: sinon.stub().returns(module.exports.signature),
+    randomBytes: sinon.stub().returns(new Buffer(16))
   });
 
   module.exports.http = createMock('http', {
@@ -87,6 +88,7 @@ var reset = module.exports.reset = function() {
   });
 
   module.exports.socketInstance = {
+    conn: {transport: {socket: {internalOnClose: undefined}}},
     disconnect: sinon.stub(),
     emit: sinon.stub(),
     on: sinon.stub()
@@ -134,23 +136,39 @@ var reset = module.exports.reset = function() {
     close: sinon.stub(),
   };
 
+  module.exports.ConnectionDescription = {
+    close: sinon.stub(),
+    setRtcpMux: sinon.stub(),
+    setProfile: sinon.stub(),
+    setBundle: sinon.stub(),
+    setAudioAndVideo: sinon.stub(),
+    setVideoSsrcList: sinon.stub(),
+    postProcessInfo: sinon.stub(),
+  };
+
   module.exports.WebRtcConnection = {
     wrtcId: '',
-    minVideoBW: '',
-    scheme:'',
-    periodicPlis:'',
     init: sinon.stub(),
+    close: sinon.stub(),
+    createOffer: sinon.stub(),
+    setRemoteSdp: sinon.stub(),
+    setRemoteDescription: sinon.stub(),
+    addRemoteCandidate: sinon.stub(),
+    addMediaStream: sinon.stub(),
+  };
+
+  module.exports.MediaStream = {
+    minVideoBW: '',
+    scheme: '',
+    periodicPlis: '',
+    close: sinon.stub(),
     setAudioReceiver: sinon.stub(),
     setVideoReceiver: sinon.stub(),
-    close: sinon.stub(),
     getStats: sinon.stub(),
     getPeriodicStats: sinon.stub(),
     generatePLIPacket: sinon.stub(),
-    createOffer: sinon.stub(),
-    setRemoteSdp: sinon.stub(),
-    addRemoteCandidate: sinon.stub(),
     setSlideShowMode: sinon.stub(),
-    muteStream: sinon.stub()
+    muteStream: sinon.stub(),
   };
 
   module.exports.ExternalInput = {
@@ -168,7 +186,9 @@ var reset = module.exports.reset = function() {
 
   module.exports.erizoAPI = createMock('../../erizoAPI/build/Release/addon', {
     OneToManyProcessor: sinon.stub().returns(module.exports.OneToManyProcessor),
+    ConnectionDescription: sinon.stub().returns(module.exports.ConnectionDescription),
     WebRtcConnection: sinon.stub().returns(module.exports.WebRtcConnection),
+    MediaStream: sinon.stub().returns(module.exports.MediaStream),
     ExternalInput: sinon.stub().returns(module.exports.ExternalInput),
     ExternalOutput: sinon.stub().returns(module.exports.ExternalOutput)
   });

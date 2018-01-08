@@ -2,7 +2,6 @@
 
 #include <vector>
 
-#include "./WebRtcConnection.h"
 #include "lib/ClockUtils.h"
 
 namespace erizo {
@@ -20,7 +19,7 @@ void LayerBitrateCalculationHandler::disable() {
   enabled_ = false;
 }
 
-void LayerBitrateCalculationHandler::write(Context *ctx, std::shared_ptr<dataPacket> packet) {
+void LayerBitrateCalculationHandler::write(Context *ctx, std::shared_ptr<DataPacket> packet) {
   if (!enabled_ || !initialized_) {
     ctx->fireWrite(std::move(packet));
     return;

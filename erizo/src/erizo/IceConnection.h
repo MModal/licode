@@ -26,7 +26,7 @@ typedef unsigned int uint;
 namespace erizo {
 
 // forward declarations
-typedef std::shared_ptr<dataPacket> packetPtr;
+typedef std::shared_ptr<DataPacket> packetPtr;
 class CandidateInfo;
 class WebRtcConnection;
 class IceConnection;
@@ -117,8 +117,8 @@ class IceConnection : public LogContext {
   virtual std::string iceStateToString(IceState state) const;
 
  protected:
-  inline const char* toLog() {
-    return ("id: " + ice_config_.connection_id + ", " + printLogContext()).c_str();
+  inline std::string toLog() {
+    return "id: " + ice_config_.connection_id + ", " + printLogContext();
   }
 
  protected:

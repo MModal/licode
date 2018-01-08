@@ -33,6 +33,7 @@ const Room = (altIo, altConnection, specInput) => {
   that.Connection = altConnection === undefined ? Connection : altConnection;
 
   let socket = Socket(altIo);
+  that.socket = socket;
   let remoteStreams = that.remoteStreams;
   let localStreams = that.localStreams;
 
@@ -103,6 +104,7 @@ const Room = (altIo, altConnection, specInput) => {
       maxVideoBW: stream.maxVideoBW,
       limitMaxAudioBW: spec.maxAudioBW,
       limitMaxVideoBW: spec.maxVideoBW,
+      forceTurn: stream.forceTurn,
     };
     return options;
   };
@@ -139,6 +141,16 @@ const Room = (altIo, altConnection, specInput) => {
     connection.createOffer();
   };
 
+  const removeLocalStreamP2PConnection = (streamInput, peerSocket) => {
+    const stream = streamInput;
+    if (stream.pc === undefined || !stream.pc.has(peerSocket)) {
+      return;
+    }
+    const pc = stream.pc.get(peerSocket);
+    pc.close();
+    stream.pc.remove(peerSocket);
+  };
+
   const getErizoConnectionOptions = (stream, options, isRemote) => {
     const connectionOpts = {
       callback(message) {
@@ -155,7 +167,8 @@ const Room = (altIo, altConnection, specInput) => {
       maxVideoBW: options.maxVideoBW,
       limitMaxAudioBW: spec.maxAudioBW,
       limitMaxVideoBW: spec.maxVideoBW,
-      iceServers: that.iceServers };
+      iceServers: that.iceServers,
+      forceTurn: stream.forceTurn };
     if (!isRemote) {
       connectionOpts.simulcast = options.simulcast;
     }
@@ -240,6 +253,13 @@ const Room = (altIo, altConnection, specInput) => {
     createLocalStreamP2PConnection(myStream, arg.peerSocket);
   };
 
+  const socketOnUnpublishMe = (arg) => {
+    const myStream = localStreams.get(arg.streamId);
+    if (myStream) {
+      removeLocalStreamP2PConnection(myStream, arg.peerSocket);
+    }
+  };
+
   const socketOnBandwidthAlert = (arg) => {
     Logger.info('Bandwidth Alert on', arg.streamID, 'message',
                         arg.message, 'BW:', arg.bandwidth);
@@ -280,11 +300,12 @@ const Room = (altIo, altConnection, specInput) => {
       return;
     }
     stream = remoteStreams.get(arg.id);
-
-    remoteStreams.remove(arg.id);
-    removeStream(stream);
-    const evt = StreamEvent({ type: 'stream-removed', stream });
-    that.dispatchEvent(evt);
+    if (stream) {
+      remoteStreams.remove(arg.id);
+      removeStream(stream);
+      const evt = StreamEvent({ type: 'stream-removed', stream });
+      that.dispatchEvent(evt);
+    }
   };
 
   // The socket has disconnected
@@ -357,6 +378,7 @@ const Room = (altIo, altConnection, specInput) => {
     attributes: stream.getAttributes(),
     metadata: options.metadata,
     createOffer: options.createOffer,
+    muteStream: options.muteStream,
   });
 
   const populateStreamFunctions = (id, streamInput, error, callback = () => {}) => {
@@ -427,6 +449,17 @@ const Room = (altIo, altConnection, specInput) => {
     });
   };
 
+  const getVideoConstraints = (stream, video) => {
+    const hasVideo = video && stream.hasVideo();
+    const width = video && video.width;
+    const height = video && video.height;
+    const frameRate = video && video.frameRate;
+    if (width || height || frameRate) {
+      return { width, height, frameRate };
+    }
+    return hasVideo;
+  };
+
   const subscribeErizo = (streamInput, optionsInput, callback = () => {}) => {
     const stream = streamInput;
     const options = optionsInput;
@@ -440,11 +473,12 @@ const Room = (altIo, altConnection, specInput) => {
     stream.checkOptions(options);
     const constraint = { streamId: stream.getID(),
       audio: options.audio && stream.hasAudio(),
-      video: options.video && stream.hasVideo(),
+      video: getVideoConstraints(stream, options.video),
       data: options.data && stream.hasData(),
       browser: that.Connection.getBrowser(),
       createOffer: options.createOffer,
       metadata: options.metadata,
+      muteStream: options.muteStream,
       slideShowMode: options.slideShowMode };
     socket.sendSDP('subscribe', constraint, undefined, (result, error) => {
       if (result === null) {
@@ -592,7 +626,14 @@ const Room = (altIo, altConnection, specInput) => {
       options.minVideoBW = spec.defaultVideoBW;
     }
 
+    stream.forceTurn = options.forceTurn;
+
     options.simulcast = options.simulcast || false;
+
+    options.muteStream = {
+      audio: stream.audioMuted,
+      video: stream.videoMuted,
+    };
 
     // 1- If the stream is not local or it is a failed stream we do nothing.
     if (stream && stream.local && !stream.failed && !localStreams.has(stream.getID())) {
@@ -703,6 +744,13 @@ const Room = (altIo, altConnection, specInput) => {
           options.audio = false;
         }
 
+        options.muteStream = {
+          audio: stream.audioMuted,
+          video: stream.videoMuted,
+        };
+
+        stream.forceTurn = options.forceTurn;
+
         if (that.p2p) {
           socket.sendSDP('subscribe', { streamId: stream.getID(), metadata: options.metadata });
           callback(true);
@@ -791,6 +839,7 @@ const Room = (altIo, altConnection, specInput) => {
   socket.on('signaling_message_erizo', socketEventToArgs.bind(null, socketOnErizoMessage));
   socket.on('signaling_message_peer', socketEventToArgs.bind(null, socketOnPeerMessage));
   socket.on('publish_me', socketEventToArgs.bind(null, socketOnPublishMe));
+  socket.on('unpublish_me', socketEventToArgs.bind(null, socketOnUnpublishMe));
   socket.on('onBandwidthAlert', socketEventToArgs.bind(null, socketOnBandwidthAlert));
   socket.on('onDataStream', socketEventToArgs.bind(null, socketOnDataStream));
   socket.on('onUpdateAttributeStream', socketEventToArgs.bind(null, socketOnUpdateAttributeStream));

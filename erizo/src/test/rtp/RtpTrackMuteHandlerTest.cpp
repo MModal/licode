@@ -18,7 +18,7 @@ using ::testing::_;
 using ::testing::IsNull;
 using ::testing::Args;
 using ::testing::Return;
-using erizo::dataPacket;
+using erizo::DataPacket;
 using erizo::packetType;
 using erizo::AUDIO_PACKET;
 using erizo::VIDEO_PACKET;
@@ -155,8 +155,8 @@ TEST_F(RtpTrackMuteHandlerTest, shouldAdjustSequenceNumbers) {
       With(Args<1>(erizo::ReceiverReportHasSequenceNumber(last_sent_seq_number))).
       Times(1);
 
-    uint source_ssrc = connection->getAudioSinkSSRC();
-    uint ssrc = connection->getAudioSourceSSRC();
+    uint source_ssrc = media_stream->getAudioSinkSSRC();
+    uint ssrc = media_stream->getAudioSourceSSRC();
     auto nack = erizo::PacketTools::createNack(ssrc, source_ssrc, erizo::kArbitrarySeqNumber + 3, AUDIO_PACKET);
     pipeline->read(nack);
     auto receiver_report = erizo::PacketTools::createReceiverReport(ssrc, source_ssrc, erizo::kArbitrarySeqNumber + 3,

@@ -33,7 +33,7 @@ namespace erizo {
 #define NICE_STREAM_DEF_PWD     22 + 1   /* pwd + NULL */
 
 // forward declarations
-typedef std::shared_ptr<dataPacket> packetPtr;
+typedef std::shared_ptr<DataPacket> packetPtr;
 class CandidateInfo;
 class WebRtcConnection;
 
@@ -75,7 +75,7 @@ class LibNiceConnection : public IceConnection {
   unsigned int candsDelivered_;
 
   boost::thread m_Thread_;
-  boost::mutex closeMutex_;
+  boost::mutex close_mutex_;
   boost::condition_variable cond_;
 
   bool receivedLastCandidate_;

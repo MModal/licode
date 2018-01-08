@@ -21,7 +21,7 @@ class Transport;
 
 class TransportListener {
  public:
-  virtual void onTransportData(std::shared_ptr<dataPacket> packet, Transport *transport) = 0;
+  virtual void onTransportData(std::shared_ptr<DataPacket> packet, Transport *transport) = 0;
   virtual void updateState(TransportState state, Transport *transport) = 0;
   virtual void onCandidate(const CandidateInfo& cand, Transport *transport) = 0;
 };
@@ -91,8 +91,8 @@ class Transport : public std::enable_shared_from_this<Transport>, public IceConn
 
   bool rtcp_mux_;
 
-  inline const char* toLog() {
-    return ("id: " + connection_id_ + ", " + printLogContext()).c_str();
+  inline std::string toLog() {
+    return "id: " + connection_id_ + ", " + printLogContext();
   }
 
   std::shared_ptr<Worker> getWorker() {

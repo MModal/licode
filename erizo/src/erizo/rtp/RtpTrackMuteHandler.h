@@ -8,7 +8,7 @@
 
 namespace erizo {
 
-class WebRtcConnection;
+class MediaStream;
 
 class TrackMuteInfo {
  public:
@@ -37,21 +37,21 @@ class RtpTrackMuteHandler: public Handler {
     return "track-mute";
   }
 
-  void read(Context *ctx, std::shared_ptr<dataPacket> packet) override;
-  void write(Context *ctx, std::shared_ptr<dataPacket> packet) override;
+  void read(Context *ctx, std::shared_ptr<DataPacket> packet) override;
+  void write(Context *ctx, std::shared_ptr<DataPacket> packet) override;
   void notifyUpdate() override;
 
  private:
   void muteTrack(TrackMuteInfo *info, bool active);
-  void handleFeedback(const TrackMuteInfo &info, const std::shared_ptr<dataPacket> &packet);
-  void handlePacket(Context *ctx, TrackMuteInfo *info, std::shared_ptr<dataPacket> packet);
-  inline void setPacketSeqNumber(std::shared_ptr<dataPacket> packet, uint16_t seq_number);
+  void handleFeedback(const TrackMuteInfo &info, const std::shared_ptr<DataPacket> &packet);
+  void handlePacket(Context *ctx, TrackMuteInfo *info, std::shared_ptr<DataPacket> packet);
+  inline void setPacketSeqNumber(std::shared_ptr<DataPacket> packet, uint16_t seq_number);
 
  private:
   TrackMuteInfo audio_info_;
   TrackMuteInfo video_info_;
 
-  WebRtcConnection* connection_;
+  MediaStream* stream_;
 };
 
 }  // namespace erizo
