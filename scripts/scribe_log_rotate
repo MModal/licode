@@ -1,8 +1,8 @@
 /var/log/scribe/webserver.log
 /var/log/scribe/licode.log
 {
-    rotate 5
-    weekly
+    rotate 7
+    daily
     missingok
     notifempty
     sharedscripts
