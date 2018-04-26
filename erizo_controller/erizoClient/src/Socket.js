@@ -47,7 +47,7 @@ const Socket = (newIo) => {
     });
   };
 
-  that.connect = (token, callback = defaultCallback, error = defaultCallback) => {
+  that.connect = (token, userOptions, callback = defaultCallback, error = defaultCallback) => {
     const options = {
       reconnection: true,
       reconnectionAttempts: 3,
@@ -97,9 +97,9 @@ const Socket = (newIo) => {
       socket.close();
     });
 
-    socket.on('connection_failed', () => {
+    socket.on('connection_failed', (evt) => {
       Logger.error('connection failed, id:', that.id);
-      emit('connection_failed', { streamId: that.id });
+      emit('connection_failed', evt);
     });
     socket.on('error', (err) => {
       Logger.warning('socket error, id:', that.id, ', error:', err.message);
@@ -139,7 +139,9 @@ const Socket = (newIo) => {
     });
 
     // First message with the token
-    that.sendMessage('token', token, (response) => {
+    const message = userOptions;
+    message.token = token;
+    that.sendMessage('token', message, (response) => {
       that.state = that.CONNECTED;
       that.id = response.clientId;
       callback(response);
@@ -178,8 +180,8 @@ const Socket = (newIo) => {
       Logger.error('Trying to send a message over a disconnected Socket');
       return;
     }
-    socket.emit(type, options, sdp, (response, respCallback) => {
-      callback(response, respCallback);
+    socket.emit(type, options, sdp, (...args) => {
+      callback(...args);
     });
   };
   return that;

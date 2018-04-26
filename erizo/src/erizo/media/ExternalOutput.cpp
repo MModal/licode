@@ -11,18 +11,24 @@
 #include "rtp/RtpHeaders.h"
 #include "rtp/RtpVP8Parser.h"
 
+#include "rtp/QualityFilterHandler.h"
+#include "rtp/LayerBitrateCalculationHandler.h"
+
 using std::memcpy;
 
 namespace erizo {
 
 DEFINE_LOGGER(ExternalOutput, "media.ExternalOutput");
-ExternalOutput::ExternalOutput(const std::string& output_url, const std::vector<RtpMap> rtp_mappings)
-  : audio_queue_{5.0, 10.0}, video_queue_{5.0, 10.0}, inited_{false}, video_stream_{nullptr},
+ExternalOutput::ExternalOutput(std::shared_ptr<Worker> worker, const std::string& output_url,
+                               const std::vector<RtpMap> rtp_mappings,
+                               const std::vector<erizo::ExtMap> ext_mappings)
+  : worker_{worker}, pipeline_{Pipeline::create()}, audio_queue_{5.0, 10.0}, video_queue_{5.0, 10.0},
+    inited_{false}, video_stream_{nullptr},
     audio_stream_{nullptr}, video_source_ssrc_{0},
     first_video_timestamp_{-1}, first_audio_timestamp_{-1},
     first_data_received_{}, video_offset_ms_{-1}, audio_offset_ms_{-1},
     need_to_send_fir_{true}, rtp_mappings_{rtp_mappings}, video_codec_{AV_CODEC_ID_NONE},
-    audio_codec_{AV_CODEC_ID_NONE} {
+    audio_codec_{AV_CODEC_ID_NONE}, pipeline_initialized_{false}, ext_processor_{ext_mappings} {
   ELOG_DEBUG("Creating output to %s", output_url.c_str());
 
   fb_sink_ = nullptr;
@@ -33,6 +39,8 @@ ExternalOutput::ExternalOutput(const std::string& output_url, const std::vector<
   avcodec_register_all();
 
   fec_receiver_.reset(webrtc::UlpfecReceiver::Create(this));
+  stats_ = std::make_shared<Stats>();
+  quality_manager_ = std::make_shared<QualityManager>();
 
   for (auto rtp_map : rtp_mappings_) {
     switch (rtp_map.media_type) {
@@ -58,14 +66,25 @@ ExternalOutput::ExternalOutput(const std::string& output_url, const std::vector<
       ELOG_ERROR("Error guessing format %s", context_->filename);
     }
   }
+
+  // Set a fixed extension map to parse video orientation
+  // TODO(yannistseng): Update extension maps dymaically from SDP info
+  std::shared_ptr<SdpInfo> sdp = std::make_shared<SdpInfo>(rtp_mappings_);
+  ExtMap anExt(4, "urn:3gpp:video-orientation");
+  anExt.mediaType = VIDEO_TYPE;
+  sdp->extMapVector.push_back(anExt);
+  ext_processor_.setSdpInfo(sdp);
 }
 
 bool ExternalOutput::init() {
   MediaInfo m;
   m.hasVideo = false;
   m.hasAudio = false;
-  thread_ = boost::thread(&ExternalOutput::sendLoop, this);
   recording_ = true;
+  asyncTask([] (std::shared_ptr<ExternalOutput> output) {
+    output->initializePipeline();
+  });
+  thread_ = boost::thread(&ExternalOutput::sendLoop, this);
   ELOG_DEBUG("Initialized successfully");
   return true;
 }
@@ -73,16 +92,21 @@ bool ExternalOutput::init() {
 
 ExternalOutput::~ExternalOutput() {
   ELOG_DEBUG("Destructing");
-  close();
 }
 
 void ExternalOutput::close() {
+  std::shared_ptr<ExternalOutput> shared_this = shared_from_this();
+  asyncTask([shared_this] (std::shared_ptr<ExternalOutput> connection) {
+    shared_this->syncClose();
+  });
+}
+
+void ExternalOutput::syncClose() {
   if (!recording_) {
     return;
   }
   // Stop our thread so we can safely nuke libav stuff and close our
   // our file.
-  recording_ = false;
   cond_.notify_one();
   thread_.join();
 
@@ -104,7 +128,19 @@ void ExternalOutput::close() {
       context_ = nullptr;
   }
 
+  pipeline_initialized_ = false;
+  recording_ = false;
+
   ELOG_DEBUG("Closed Successfully");
+}
+
+void ExternalOutput::asyncTask(std::function<void(std::shared_ptr<ExternalOutput>)> f) {
+  std::weak_ptr<ExternalOutput> weak_this = shared_from_this();
+  worker_->task([weak_this, f] {
+    if (auto this_ptr = weak_this.lock()) {
+      f(this_ptr);
+    }
+  });
 }
 
 void ExternalOutput::receiveRawData(const RawDataPacket& /*packet*/) {
@@ -265,28 +301,71 @@ void ExternalOutput::maybeWriteVideoPacket(char* buf, int len) {
   }
 }
 
+void ExternalOutput::notifyUpdateToHandlers() {
+  asyncTask([] (std::shared_ptr<ExternalOutput> output) {
+    output->pipeline_->notifyUpdate();
+  });
+}
+
+void ExternalOutput::initializePipeline() {
+  stats_->getNode()["total"].insertStat("senderBitrateEstimation",
+      CumulativeStat{static_cast<uint64_t>(kExternalOutputMaxBitrate)});
+
+  handler_manager_ = std::make_shared<HandlerManager>(shared_from_this());
+  pipeline_->addService(handler_manager_);
+  pipeline_->addService(quality_manager_);
+  pipeline_->addService(stats_);
+
+  pipeline_->addFront(LayerBitrateCalculationHandler());
+  pipeline_->addFront(QualityFilterHandler());
+
+  pipeline_->addFront(ExternalOuputWriter(shared_from_this()));
+  pipeline_->finalize();
+  pipeline_initialized_ = true;
+}
+
+void ExternalOutput::write(std::shared_ptr<DataPacket> packet) {
+  queueData(packet->data, packet->length, packet->type);
+}
+
+void ExternalOutput::queueDataAsync(std::shared_ptr<DataPacket> copied_packet) {
+  asyncTask([copied_packet] (std::shared_ptr<ExternalOutput> this_ptr) {
+    if (!this_ptr->pipeline_initialized_) {
+      return;
+    }
+    this_ptr->pipeline_->write(std::move(copied_packet));
+  });
+}
+
 int ExternalOutput::deliverAudioData_(std::shared_ptr<DataPacket> audio_packet) {
   std::shared_ptr<DataPacket> copied_packet = std::make_shared<DataPacket>(*audio_packet);
-  queueData(copied_packet->data, copied_packet->length, AUDIO_PACKET);
+  copied_packet->type = AUDIO_PACKET;
+  queueDataAsync(copied_packet);
   return 0;
 }
 
 int ExternalOutput::deliverVideoData_(std::shared_ptr<DataPacket> video_packet) {
-  std::shared_ptr<DataPacket> copied_packet = std::make_shared<DataPacket>(*video_packet);
-  // TODO(javierc): We should support higher layers, but it requires having an entire pipeline at this point
-  if (!video_packet->belongsToSpatialLayer(0)) {
-    return 0;
-  }
   if (video_source_ssrc_ == 0) {
-    RtpHeader* h = reinterpret_cast<RtpHeader*>(copied_packet->data);
+    RtpHeader* h = reinterpret_cast<RtpHeader*>(video_packet->data);
     video_source_ssrc_ = h->getSSRC();
   }
-  queueData(copied_packet->data, copied_packet->length, VIDEO_PACKET);
+
+  std::shared_ptr<DataPacket> copied_packet = std::make_shared<DataPacket>(*video_packet);
+  copied_packet->type = VIDEO_PACKET;
+  ext_processor_.processRtpExtensions(copied_packet);
+  queueDataAsync(copied_packet);
   return 0;
 }
 
 int ExternalOutput::deliverEvent_(MediaEventPtr event) {
-  return 0;
+  auto output_ptr = shared_from_this();
+  worker_->task([output_ptr, event]{
+    if (!output_ptr->pipeline_initialized_) {
+      return;
+    }
+    output_ptr->pipeline_->notifyEvent(event);
+  });
+  return 1;
 }
 
 bool ExternalOutput::initContext() {
@@ -307,8 +386,9 @@ bool ExternalOutput::initContext() {
     video_stream_->codec->width = 640;
     video_stream_->codec->height = 480;
     video_stream_->time_base = (AVRational) { 1, 30 };
+    video_stream_->metadata = genVideoMetadata();
     // A decent guess here suffices; if processing the file with ffmpeg,
-      // use -vsync 0 to force it not to duplicate frames.
+    // use -vsync 0 to force it not to duplicate frames.
     video_stream_->codec->pix_fmt = PIX_FMT_YUV420P;
     if (context_->oformat->flags & AVFMT_GLOBALHEADER) {
       video_stream_->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
@@ -465,5 +545,27 @@ void ExternalOutput::sendLoop() {
     boost::shared_ptr<DataPacket> video_packet = video_queue_.popPacket(true);  // ignore our minimum depth check
     writeVideoData(video_packet->data, video_packet->length);
   }
+}
+
+AVDictionary* ExternalOutput::genVideoMetadata() {
+    AVDictionary* dict = NULL;
+    switch (ext_processor_.getVideoRotation()) {
+      case kVideoRotation_0:
+        av_dict_set(&dict, "rotate", "0", 0);
+        break;
+      case kVideoRotation_90:
+        av_dict_set(&dict, "rotate", "90", 0);
+        break;
+      case kVideoRotation_180:
+        av_dict_set(&dict, "rotate", "180", 0);
+        break;
+      case kVideoRotation_270:
+        av_dict_set(&dict, "rotate", "270", 0);
+        break;
+      default:
+        av_dict_set(&dict, "rotate", "0", 0);
+        break;
+    }
+    return dict;
 }
 }  // namespace erizo

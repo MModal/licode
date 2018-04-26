@@ -2,8 +2,10 @@
 const addon = require('./../erizoAPI/build/Release/addon'); // eslint-disable-line import/no-unresolved
 const licodeConfig = require('./../licode_config');
 const mediaConfig = require('./../rtp_media_config');
-const SemanticSdp = require('./../erizo_controller/common/semanticSdp/SemanticSdp');
 const logger = require('./logger').logger;
+const SessionDescription = require('./../erizo_controller/erizoJS/models/SessionDescription');
+const SemanticSdp = require('./../erizo_controller/common/semanticSdp/SemanticSdp');
+
 
 const log = logger.getLogger('NativeClient');
 
@@ -22,10 +24,12 @@ exports.ErizoNativeConnection = (config) => {
   const that = {};
   let wrtc;
   let mediaStream;
+  let streamId;
   let syntheticInput;
   let externalInput;
   let oneToMany;
   let externalOutput;
+  let firstOfferSent = false;
   const configuration = Object.assign({}, config);
 
   that.connected = false;
@@ -37,6 +41,7 @@ exports.ErizoNativeConnection = (config) => {
   // CONN_FINISHED = 105,
   const CONN_CANDIDATE = 201;
   const CONN_SDP = 202;
+  const CONN_SDP_PROCESSED  = 203;
   const CONN_FAILED = 500;
 
   const generatePLIs = () => {
@@ -65,9 +70,11 @@ exports.ErizoNativeConnection = (config) => {
 
         case CONN_SDP:
         case CONN_GATHERED:
+        case CONN_SDP_PROCESSED:
           setTimeout(() => {
-            const sdp = SemanticSdp.SDPInfo.processString(mess);
-            initConnectionCallback('callback', { type: 'offer', sdp: sdp.toJSON() });
+            wrtc.localDescription = new SessionDescription(wrtc.getLocalDescription());
+            const sdp = wrtc.localDescription.getSdp();
+            initConnectionCallback('callback', { type: 'offer', sdp: sdp.toString() });
           }, 100);
           break;
 
@@ -121,8 +128,10 @@ exports.ErizoNativeConnection = (config) => {
   global.config.erizo.turnpass,
   global.config.erizo.networkinterface);
 
-  mediaStream = new addon.MediaStream(wrtc,
-      `spine_${configuration.sessionId}`,
+  streamId = `spine_${Math.floor(Math.random() * 1000)}`;
+
+  mediaStream = new addon.MediaStream(threadPool, wrtc,
+      streamId, config.label,
       JSON.stringify(global.mediaConfig));
 
   wrtc.addMediaStream(mediaStream);
@@ -172,7 +181,8 @@ exports.ErizoNativeConnection = (config) => {
     if (signalingMsg.type === 'started') {
       initWebRtcConnection((mess, info) => {
         log.info('Message from wrtc', info.type);
-        if (info.type === 'offer') {
+        if (info.type === 'offer' && !firstOfferSent) {
+          firstOfferSent = true;
           configuration.callback({ type: info.type, sdp: info.sdp });
         }
       }, {});
@@ -184,9 +194,18 @@ exports.ErizoNativeConnection = (config) => {
     } else if (signalingMsg.type === 'answer') {
       setTimeout(() => {
         log.info('Passing delayed answer');
-        const sdp = SemanticSdp.SDPInfo.process(signalingMsg.sdp);
-        wrtc.setRemoteSdp(sdp.toString());
-        that.onaddstream({ stream: { active: true } });
+        const sdp = SemanticSdp.SDPInfo.processString(signalingMsg.sdp);
+        this.remoteDescription = new SessionDescription(sdp, 'default');
+        wrtc.setRemoteDescription(this.remoteDescription.connectionDescription, streamId);
+        sdp.streams.forEach((stream) => {
+          let label = '';
+          for (const track of stream.tracks.values()) {
+            track.ssrcs.forEach(ssrc => {
+              label = ssrc.mslabel;
+            });
+          }
+          that.onaddstream({ stream: { active: true, id: label } });
+        });
       }, 10);
     }
   };

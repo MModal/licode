@@ -1,11 +1,5 @@
-/* global window, chrome, navigator */
-import ChromeStableStack from './webrtc-stacks/ChromeStableStack';
-import FirefoxStack from './webrtc-stacks/FirefoxStack';
-import FcStack from './webrtc-stacks/FcStack';
-import Logger from './utils/Logger';
-
-
-let ErizoSessionId = 103;
+/* global navigator, window, chrome */
+import Logger from './Logger';
 
 const getBrowser = () => {
   let browser = 'none';
@@ -28,40 +22,6 @@ const getBrowser = () => {
   return browser;
 };
 
-const buildConnection = (specInput) => {
-  let that = {};
-  const spec = specInput;
-  ErizoSessionId += 1;
-  spec.sessionId = ErizoSessionId;
-
-  // Check which WebRTC Stack is installed.
-  that.browser = getBrowser();
-  if (that.browser === 'fake') {
-    Logger.warning('Publish/subscribe video/audio streams not supported in erizofc yet');
-    that = FcStack(spec);
-  } else if (that.browser === 'mozilla') {
-    Logger.debug('Firefox Stack');
-    that = FirefoxStack(spec);
-  } else if (that.browser === 'safari') {
-    Logger.debug('Safari using Chrome Stable Stack');
-    that = ChromeStableStack(spec);
-  } else if (that.browser === 'chrome-stable' || that.browser === 'electron') {
-    Logger.debug('Chrome Stable Stack');
-    that = ChromeStableStack(spec);
-  } else {
-    Logger.error('No stack available for this browser');
-    throw new Error('WebRTC stack not available');
-  }
-  if (!that.updateSpec) {
-    that.updateSpec = (newSpec, callback = () => {}) => {
-      Logger.error('Update Configuration not implemented in this browser');
-      callback('unimplemented');
-    };
-  }
-
-  return that;
-};
-
 const GetUserMedia = (config, callback = () => {}, error = () => {}) => {
   let screenConfig;
 
@@ -77,7 +37,8 @@ const GetUserMedia = (config, callback = () => {}, error = () => {}) => {
         screenConfig = {};
         screenConfig.video = config.video || {};
         screenConfig.video.mandatory = config.video.mandatory || {};
-        screenConfig.video.mandatory.chromeMediaSource = 'screen';
+        screenConfig.video.mandatory.chromeMediaSource = 'desktop';
+        screenConfig.video.mandatory.chromeMediaSourceId = config.desktopStreamId;
         getUserMedia(screenConfig, callback, error);
         break;
       case 'mozilla':
@@ -143,7 +104,6 @@ const GetUserMedia = (config, callback = () => {}, error = () => {}) => {
           }
         }
         break;
-
       default:
         Logger.error('This browser does not support ScreenSharing');
     }
@@ -158,6 +118,8 @@ const GetUserMedia = (config, callback = () => {}, error = () => {}) => {
     getUserMedia(config, callback, error);
   }
 };
-const Connection = { GetUserMedia, buildConnection, getBrowser };
 
-export default Connection;
+
+const ConnectionHelpers = { GetUserMedia, getBrowser };
+
+export default ConnectionHelpers;
