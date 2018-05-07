@@ -50,7 +50,7 @@ const Socket = (newIo) => {
   that.connect = (token, callback = defaultCallback, error = defaultCallback) => {
     const options = {
       reconnect: true,
-      reconnectionAttempts: 30,
+      reconnectionAttempts: 120,
       secure: token.secure,
       forceNew: true,
       transports: ['websocket'],
@@ -88,8 +88,9 @@ const Socket = (newIo) => {
     // The socket has disconnected
     socket.on('disconnect', (reason) => {
       Logger.debug('disconnect', reason);
-      if (closeCode !== WEBSOCKET_NORMAL_CLOSURE) {
+      if (closeCode !== WEBSOCKET_NORMAL_CLOSURE || reason === 'ping timeout') {
         that.state = that.RECONNECTING;
+        emit('disconnect-pending-reconnect');
         return;
       }
       emit('disconnect', reason);
@@ -121,6 +122,7 @@ const Socket = (newIo) => {
       that.sendMessage('client_reconnect', clientId, () => {
         that.state = that.CONNECTED;
         flushBuffer();
+        emit('reconnected');
       }, error);
     });
 
