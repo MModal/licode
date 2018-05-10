@@ -311,7 +311,11 @@ const Room = (altIo, altConnection, specInput) => {
   const socketOnReconnect = () => {
     Logger.info('Socket reconnected');
     if (that.state !== DISCONNECTED) {
-      const reconnectEvt = RoomEvent({ type: 'room-reconnected' });
+      const streamList = [];
+      that.remoteStreams.forEach((value) => {
+        streamList.push(value);
+      });
+      const reconnectEvt = RoomEvent({ type: 'room-reconnected', streams: streamList });
       that.dispatchEvent(reconnectEvt);
     }
   };

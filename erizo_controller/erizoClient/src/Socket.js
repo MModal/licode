@@ -50,7 +50,7 @@ const Socket = (newIo) => {
   that.connect = (token, callback = defaultCallback, error = defaultCallback) => {
     const options = {
       reconnect: true,
-      reconnectionAttempts: 120,
+      reconnectionAttempts: 25,
       secure: token.secure,
       forceNew: true,
       transports: ['websocket'],
@@ -64,7 +64,7 @@ const Socket = (newIo) => {
     let closeCode = WEBSOCKET_NORMAL_CLOSURE;
     const socketOnCloseFunction = socket.io.engine.transport.ws.onclose;
     socket.io.engine.transport.ws.onclose = (closeEvent) => {
-      Logger.warning('WebSocket closed, code:', closeEvent.code);
+      Logger.info('WebSocket closed, code:', closeEvent.code);
       closeCode = closeEvent.code;
       socketOnCloseFunction(closeEvent);
     };
@@ -119,6 +119,7 @@ const Socket = (newIo) => {
 
     socket.on('reconnect', (attemptNumber) => {
       Logger.debug('reconnected: attempet:', attemptNumber);
+      closeCode = WEBSOCKET_NORMAL_CLOSURE;
       that.sendMessage('client_reconnect', clientId, () => {
         that.state = that.CONNECTED;
         flushBuffer();
