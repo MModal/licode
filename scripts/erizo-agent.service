@@ -1,0 +1,18 @@
+[Unit]
+Description=Licode Erizo Agent Running Node.js - Provides Licode MCU
+Requires=rabbitmq-server.service
+After=network.target rabbitmq-server.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+ExecStart=/bin/bash "${LICODE_HOME}/scripts/start-erizo-agent.sh"
+Restart=always
+RestartSec=10s                      
+StandardOutput=syslog               
+StandardError=syslog                
+SyslogIdentifier=licode-erizo-agent
+User=nobody
+Group=nogroup
+Environment=LICODE_HOME=/opt/licode

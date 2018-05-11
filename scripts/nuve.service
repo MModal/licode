@@ -1,0 +1,21 @@
+[Unit]
+Description=Licode Nuve Running Node.js
+Requires=rabbitmq-server.service mongodb.service
+After=network.target rabbitmq-server.service mongodb.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+ExecStart=/bin/bash "${LICODE_HOME}/scripts/start-nuve.sh"
+#ExecStartPre=/bin/bash -c "/bin/systemctl set-environment LICODE_HOME=/opt/licode"
+#ExecStart=/bin/bash -c "echo ${LICODE_HOME}"
+Restart=on-failure
+RestartSec=10s                       
+StandardOutput=syslog               
+StandardError=syslog                
+SyslogIdentifier=licode-nuve
+User=nobody
+Group=nogroup
+#PermissionsStartOnly=true
+Environment=LICODE_HOME=/opt/licode
