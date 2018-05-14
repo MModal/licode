@@ -24,7 +24,6 @@ const Socket = (newIo) => {
   that.RECONNECTING = Symbol('reconnecting');
   that.DISCONNECTED = Symbol('disconnected');
 
-  const WEBSOCKET_NORMAL_CLOSURE = 1000;
   that.state = that.DISCONNECTED;
   that.IO = newIo === undefined ? io : newIo;
 
@@ -60,15 +59,6 @@ const Socket = (newIo) => {
     socket = that.IO.connect(transport + token.host, options);
     const clientId = token.tokenId;
 
-    // Hack to know the exact reason of the WS closure (socket.io does not publish it)
-    let closeCode = WEBSOCKET_NORMAL_CLOSURE;
-    const socketOnCloseFunction = socket.io.engine.transport.ws.onclose;
-    socket.io.engine.transport.ws.onclose = (closeEvent) => {
-      Logger.info('WebSocket closed, code:', closeEvent.code);
-      closeCode = closeEvent.code;
-      socketOnCloseFunction(closeEvent);
-    };
-
     socket.on('onAddStream', emit.bind(that, 'onAddStream'));
 
     socket.on('signaling_message_erizo', emit.bind(that, 'signaling_message_erizo'));
@@ -88,7 +78,7 @@ const Socket = (newIo) => {
     // The socket has disconnected
     socket.on('disconnect', (reason) => {
       Logger.debug('disconnect', reason);
-      if (closeCode !== WEBSOCKET_NORMAL_CLOSURE || reason === 'ping timeout') {
+      if (reason !== 'io server disconnect' && reason !== 'io client disconnect') {
         that.state = that.RECONNECTING;
         emit('disconnect-pending-reconnect');
         return;
@@ -119,7 +109,6 @@ const Socket = (newIo) => {
 
     socket.on('reconnect', (attemptNumber) => {
       Logger.debug('reconnected: attempet:', attemptNumber);
-      closeCode = WEBSOCKET_NORMAL_CLOSURE;
       that.sendMessage('client_reconnect', clientId, () => {
         that.state = that.CONNECTED;
         flushBuffer();
