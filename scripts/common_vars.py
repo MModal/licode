@@ -27,10 +27,11 @@ def get_vcs_type():
              print("No valid VCS detected (Mercurial or Git).")
              raise
         
-def get_from_config_file(config, config_file, config_key):
+def get_from_config_file(config_file, *config_keys):
     data = json.load(open(config_file))
-    data_config = data[config]
-    return data_config[config_key]
+    for key in config_keys:
+       data = data[key]
+    return data
 
 
 def get_dev_server():
@@ -79,7 +80,6 @@ def get_branch_id():
         stdout = subprocess.PIPE
         )
         branch_id = pipe.stdout.read()
-        print(branch_id)
     
     if not branch_id:
         print("Error, no branch_id found")
@@ -161,11 +161,12 @@ def search_for_RC(latest_tag, service):
 
 def get_service_variables(service_path, default_tag="default"):
 
-    config = "docker_dev"
     global vcs_type
     vcs_type = get_vcs_type()
+    config = "docker_dev"
+    config_path = service_path + "/" + "config.json"
+    service_name = get_from_config_file(config_path, "service_name")
     key_location = "~/scribe/Scribe-Dev.pem"
-    service_name = service_path[service_path.rfind("/")+1:]
     registry = "artifactory-pit.mmodal-npd.com/mmodal"
     branch = get_branch().lower()
     version, is_versioned = get_version(service_name, default_tag, branch)
@@ -179,10 +180,9 @@ def get_service_variables(service_path, default_tag="default"):
     branch_id = get_branch_id()
     build_number = os.environ['BUILD_NUMBER'].strip()
     unique_tag = "build-{0}-{1}-{2}".format(branch, branch_id, build_number)
-    config_path = service_path + "/" + "config.json"
     network = get_network(config, config_path)
     volume = get_volume(config, config_path) 
-    docker_run_flags = get_from_config_file(config, config_path, "docker_run_flags")
-    service_variables = dict(locals())
+    docker_run_flags = get_from_config_file(config_path, config, "docker_run_flags")
     
+    service_variables = dict(locals())
     return service_variables

@@ -23,7 +23,6 @@ def get_services_paths(vcs_type):
     )
 
     repo_root = pipe.stdout.read().strip()
-    print("Repo root is {}".format(repo_root))
     #Find all Dockerfiles in this repository. For all Dockerfile directories, check if config.json file exists
 
     services_search_script = """
