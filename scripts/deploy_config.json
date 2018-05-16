@@ -1,0 +1,6 @@
+{
+    "dev_server":{
+        "user":"ubuntu",
+        "server":"dev.scribe.mmodal-npd.com"
+    }
+}

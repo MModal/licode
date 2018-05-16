@@ -34,3 +34,5 @@ libdeps/
 scripts/libdeps/
 spine/erizofc.js
 site
+*.pyc
+*.tar

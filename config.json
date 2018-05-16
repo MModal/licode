@@ -1,0 +1,46 @@
+{
+    "development": {
+        "ssl_cert": "../cert/cert.pem",
+        "private_key": "../cert/key.pem",
+        "data_db": "mongodb://localhost/scribertc",
+        "ffs_internal_url": "https://localhost:8444",
+        "cds_url": "https://integration.mmodal.com/cds"
+    },
+    "dev_server": {
+        "ssl_cert": "./cert/cert.pem",
+        "private_key": "./cert/key.pem",
+        "data_db": "mongodb://localhost/scribertc",
+        "ffs_internal_url": "https://localhost:8444",
+        "s3_bucket_name": "mmodal-scribe-upload-csd",
+        "cds_url": "https://integration.mmodal.com/cds"
+    },
+    "docker_dev": {
+        "docker_run_flags": "--net=host -e MIN_PORT=58045 -e MAX_PORT=$MAX_PORT -e PUBLIC_IP=10.0.2.15"
+    }, 
+    "docker": {
+        "ssl_cert": "./cert/cert.pem",
+        "private_key": "./cert/key.pem",
+        "data_db": "mongodb://172.30.3.4/scribertc",
+        "ffs_internal_url": "https://172.30.3.227:8443",
+        "s3_bucket_name": "mmodal-scribe-upload-csd",
+        "cds_url": "https://integration.mmodal.com/cds",
+        "cert_volume": "/opt/scribe/uploadserver/cert",
+        "network":"host"
+    }, 
+    "test": {
+        "ssl_cert": "./cert/cert.pem",
+        "private_key": "./cert/key.pem",
+        "data_db": "mongodb://172.30.3.4/scribertc",
+        "ffs_internal_url": "https://172.30.3.227:8443",
+        "s3_bucket_name": "mmodal-scribe-upload-csd",
+        "cds_url": "https://integration.mmodal.com/cds"
+    },
+    "production": {
+        "ssl_cert": "./cert/cert.pem",
+        "private_key": "./cert/key.pem",
+        "data_db": "mongodb://10.0.0.157/scribertc",
+        "ffs_internal_url": "https://10.0.0.240:8443",
+        "s3_bucket_name": "mmodal-scribe-upload",
+        "cds_url": "https://fd-atl.mmodal.com/cds"
+    }
+}
