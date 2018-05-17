@@ -70,10 +70,14 @@ def main(service_path, default_tag="default"):
 
     #Execute the script to build the image
     print("Building the service image of {0} with script: \n{1}".format(service_name ,dockerBuildScript))
-    subprocess.check_output(
+    process = subprocess.Popen(
         dockerBuildScript,
-        stderr=subprocess.STDOUT,
+        stdout = subprocess.PIPE,
         shell=True)
+
+    while process.poll() is None:
+        line = process.stdout.readline()
+        print line
 
     print("Finished building the docker image.")
     

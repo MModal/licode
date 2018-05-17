@@ -5,6 +5,24 @@ import json
 
 vcs_type = ""
 
+
+def subprocess_with_print(command):
+    print subprocess.check_output(
+       command,
+       shell = True,
+       )
+
+    #except subprocess.CalledProcessError, e:
+    #    print e.output
+
+    #while process.poll() is None:
+    #    line = process.stdout.readline()
+    #    print(line)
+
+    #if process.returncode != 0:
+    #    #print(process.stderr.read())
+    #    raise subprocess.CalledProcessError(process.returncode, command, process.stderr.read())
+
 def get_vcs_type():
 
     try:
@@ -170,7 +188,7 @@ def get_service_variables(service_path, default_tag="default"):
     branch = get_branch().lower()
     version, is_versioned = get_version(service_name, default_tag, branch)
     user,server = get_dev_server()
-    container = service_name + "-" + version 
+    container = service_name 
     repo = registry + "/ffs/" + service_name
     image_tar_name = service_name + "-latest-build.tar"
     root = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))

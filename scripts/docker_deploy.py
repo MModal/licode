@@ -8,17 +8,13 @@ import syslog
 import errno
 
 def execute_ssh_command(credentials_dictionary, server, command):
-    server_dict = credentials_dictionary[server]
-    user = server_dict["user"]
-
+    user = credentials_dictionary["user"]
+    public_key = credentials_dictionary["public_key"]
     user_server = user + "@" + server
-    ssh_command = "ssh {} {} \"{}\"".format(server_dict["public_key"], user_server, command)
-    subprocess.check_output(
-    ssh_command,
-    shell = True,
-    stderr = subprocess.STDOUT
-    )
 
+    ssh_command = "ssh {} {} \"{}\"".format(public_key, user_server, command)
+    
+    common_vars.subprocess_with_print(ssh_command)
     
 def get_parameters():
     parser = argparse.ArgumentParser()
@@ -60,7 +56,7 @@ def display_options(services):
             raise IOError("Public key '{}' not found.".format(public_key))
         
         credentials_dictionary.update({server:server_dictionary})
-        execute_ssh_command(credentials_dictionary, server,"echo test")
+        execute_ssh_command(server_dictionary, server,"echo test")
 
         print("Authentication succesfull for server {}".format(server))
 
@@ -190,7 +186,7 @@ def add_syslog_rule(credentials_dict, server, service_name):
 
     ssh_payload = """ ssh {} {} "bash -s" < syslogScript.sh {}
     """.format( public_key, user_server, service_name)
-    
+   
     subprocess.check_output(
     ssh_payload,
     shell=True,
@@ -230,18 +226,20 @@ def main(service_path, tar_file):
     add_syslog_rule(credentials, server, service_name)
     restart_remote_syslog(credentials, server)
 
-    #Build the docker script to execute over ssh
-    containerStartupScript = docker_stop(container) + docker_load(remote_image) + docker_run(container, flags, repo, version)
-    ssh_script = "ssh -i {0} {1} \"{2}\"".format(key_location, user+"@"+server,containerStartupScript)
-
-    #Execute the script over ssh
-    print("Remotely starting docker container with script: \n" + ssh_script)
-    subprocess.check_output(
-        ssh_script,
-        stderr=subprocess.STDOUT,
-        shell=True)
-
+    #Stop the remote docker containers
+    print("Stopping the remote docker container:")
+    execute_ssh_command(credentials, server, docker_stop(container))
+    #Load the docker image 
+    print("Remotely loading the image to docker:")
+    execute_ssh_command(credentials, server, docker_load(remote_image))
+    #Start the new docker container
+    print("Starting the remote instance:")
+    execute_ssh_command(credentials, server, docker_run(container, flags, repo, version))
     
+    #Delete the tar file that got transferred
+    print("Deleting the tar file that got transferred")
+    execute_ssh_command(credentials, server, "rm {}".format(remote_image))
+
     print("End of script. Deploy succesfull for {0}.".format(service_name))
 
 if  __name__ == "__main__":
