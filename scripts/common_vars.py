@@ -71,7 +71,6 @@ def get_branch_id():
          ["hg","id","-i"],
          stdout = subprocess.PIPE
          )   
-        
          branch_id = pipe.stdout.read().replace('+','')
 
     elif vcs_type == "git":
@@ -79,10 +78,10 @@ def get_branch_id():
         ["git","log","--pretty=format:'%h'","-n","1"],
         stdout = subprocess.PIPE
         )
-        branch_id = pipe.stdout.read()
+        branch_id = pipe.stdout.read().replace("'","")
     
     if not branch_id:
-        print("Error, no branch_id found")
+        raise IOError("Error, no branch id found for mercurial or git.")
 
     return branch_id.strip()
  

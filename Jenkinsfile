@@ -23,7 +23,7 @@ node('docker') {
     // distribution files for the project, as well as acting as a production image
     stage('Build') {
       checkout scm
-      sh 'python scripts/service_detect.py --default_tag default-CI build'
+      sh 'python -u scripts/service_detect.py --default_tag default-CI build'
       stash includes: '*.tar', name: 'dockerImage'
       stash includes: '*.id', name: 'dockerID'
     }
@@ -31,20 +31,20 @@ node('docker') {
     stage('Publish'){
       checkout scm
       unstash 'dockerID'
-      sh 'cd scripts; python service_detect.py --default_tag default-CI publish'
+      sh 'python -u scripts/service_detect.py --default_tag default-CI publish'
     }
   
     stage('Deploy'){
       checkout scm
       unstash 'dockerImage'
-       sh 'cd scripts; python service_detect.py --default_tag default-CI deploy'
+       sh 'python -u scripts/service_detect.py --default_tag default-CI deploy'
    }
 
   }    
   finally{
     stage('Cleanup'){
       unstash 'dockerID'
-      sh 'cd scripts; python service_detect.py cleanup'
+      sh 'python -u scripts/service_detect.py cleanup'
     }
   }
 }
