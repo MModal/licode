@@ -214,7 +214,7 @@ def main(service_path, tar_file):
     volume = service_vars["volume"]
     flags = service_vars["docker_run_flags"] 
     user = service_vars["user"] 
-    credentials = {"user":user, "public_key": "-i" + key_location}
+    credentials = {"user":user, "public_key": "-i " + key_location}
 
     #Transfer the docker image over scp
     print("Transferring the docker image to remote over scp...")
