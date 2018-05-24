@@ -16,7 +16,7 @@ properties([
 // This means that the only requirement for our build agent is
 // a *nix box that can run bash scripts and has Docker installed.
 // We use the 'docker' tag to express this requirment.
-node('docker') {
+node('Scribe_Centos_01') {
 
   try{
     // Produces a docker image (using `docker build`) that contains the compiled
