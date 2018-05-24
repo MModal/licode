@@ -12,17 +12,6 @@ def subprocess_with_print(command):
        shell = True,
        )
 
-    #except subprocess.CalledProcessError, e:
-    #    print e.output
-
-    #while process.poll() is None:
-    #    line = process.stdout.readline()
-    #    print(line)
-
-    #if process.returncode != 0:
-    #    #print(process.stderr.read())
-    #    raise subprocess.CalledProcessError(process.returncode, command, process.stderr.read())
-
 def get_vcs_type():
 
     try:

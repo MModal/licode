@@ -32,7 +32,7 @@ RUN apt-get install g++ mongodb rabbitmq-server libssl-dev libboost-thread-dev l
 RUN apt-get install python-software-properties software-properties-common -y
 RUN ./installErizo.sh -facsd
 RUN ../nuve/installNuve.sh
-RUN ./installBasicExample.sh
+#RUN ./installBasicExample.sh
 
 WORKDIR /opt
 

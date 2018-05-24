@@ -64,7 +64,7 @@ def display_options(services):
 
 def scp_image(user, public_key, image_tar_file, server, remote_location):
     scp_script = """ scp {0} {1} {2}@{3}:{4} """.format(public_key, image_tar_file, user,server,  remote_location)
-    os.system(scp_script)
+    common_vars.subprocess_with_print(scp_script)
 
 def restart_remote_syslog(credentials_dict, server):
     user = credentials_dict["user"]

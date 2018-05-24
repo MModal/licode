@@ -145,12 +145,42 @@ if [ ! -f "$ROOT"/licode_config.js ]; then
     cp "$SCRIPTS"/licode_default.js "$ROOT"/licode_config.js
 fi
 
+if [ "$ERIZOAGENT" = "true" ] || [ "$ERIZOCONTROLLER" = "true" ] || [ "$NUVE" = "true" ] ; then
+  if [ ! -z "$RABBIT_URL" ]; then 
+      echo "config.rabbit.url = '$RABBIT_URL';" >> /opt/licode/licode_config.js
+  fi
+
+  if [ ! -z "$NUVE_ID" ]; then 
+      echo "config.nuve.superserviceID = '$NUVE_ID';" >> /opt/licode/licode_config.js
+  fi
+
+  if [ ! -z "$NUVE_KEY" ]; then 
+      echo "config.nuve.superserviceKey = '$NUVE_KEY';" >> /opt/licode/licode_config.js
+  fi
+fi
+
 if [ "$NUVE" = "true" ]; then
   run_nuve
 fi
 
 if [ "$ERIZOCONTROLLER" = "true" ]; then
   echo "config.erizoController.publicIP = '$PUBLIC_IP';" >> /opt/licode/licode_config.js
+  if [ ! -z "$ERIZO_PORT" ]
+  then 
+    echo "config.erizoController.port = '$ERIZO_PORT';" >> /opt/licode/licode_config.js
+  fi
+  if [ ! -z "$ERIZO_SSL" ]
+  then 
+    echo "config.erizoController.ssl = '$ERIZO_SSL';" >> /opt/licode/licode_config.js
+  fi
+  if [ ! -z "$ERIZO_LISTEN_SSL" ]
+  then 
+    echo "config.erizoController.listen_ssl = '$ERIZO_LISTEN_SSL';" >> /opt/licode/licode_config.js
+  fi
+  if [ ! -z "$ERIZO_LISTEN_PORT" ]
+  then 
+    echo "config.erizoController.listen_port = '$ERIZO_LISTEN_PORT';" >> /opt/licode/licode_config.js
+  fi
   run_erizoController
 fi
 
@@ -158,16 +188,11 @@ if [ "$ERIZOAGENT" = "true" ]; then
   echo "config.erizoAgent.publicIP = '$PUBLIC_IP';" >> /opt/licode/licode_config.js
   echo "config.erizo.minport = '$MIN_PORT';" >> /opt/licode/licode_config.js
   echo "config.erizo.maxport = '$MAX_PORT';" >> /opt/licode/licode_config.js
-  echo "config.erizoController.port = '$ERIZO_PORT';" >> /opt/licode/licode_config.js
-  echo "config.erizoController.ssl = '$ERIZO_SSL';" >> /opt/licode/licode_config.js
-  echo "config.erizoController.listen_ssl = '$ERIZO_LISTEN_SSL';" >> /opt/licode/licode_config.js
-  echo "config.erizoController.listen_port = '$ERIZO_LISTEN_PORT';" >> /opt/licode/licode_config.js
-  run_erizoAgent
+    run_erizoAgent
 fi
 
 if [ "$BASICEXAMPLE" = "true" ]; then
   run_basicExample
 fi
-
 
 wait
