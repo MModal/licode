@@ -23,7 +23,7 @@ node('Scribe_Centos_01') {
         // distribution files for the project, as well as acting as a production image
         stage('Build') {
             checkout scm
-            sh 'python -u scripts/service_detect.py --default_tag default-CI build'
+            sh 'cd scripts; python -u service_detect.py --default_tag default-CI build'
             stash includes: '*.tar', name: 'dockerImage'
             stash includes: '*.id', name: 'dockerID'
         }
@@ -31,20 +31,20 @@ node('Scribe_Centos_01') {
         stage('Publish'){
             checkout scm
             unstash 'dockerID'
-            sh 'python -u scripts/service_detect.py --default_tag default-CI publish'
+            sh 'cd scripts; python -u service_detect.py --default_tag default-CI publish'
         }
   
         stage('Deploy'){
             checkout scm
             unstash 'dockerImage'
-            sh 'python -u scripts/service_detect.py --default_tag default-CI deploy'
+            sh 'cd scripts; python -u service_detect.py --default_tag default-CI deploy'
         }    
 
     }    
     finally{
         stage('Cleanup'){
             unstash 'dockerID'
-            sh 'python -u scripts/service_detect.py cleanup'
+            sh 'cd scripts; python -u service_detect.py cleanup'
         }
     }
 }

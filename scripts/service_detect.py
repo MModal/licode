@@ -78,21 +78,26 @@ def main():
     service_paths = get_services_paths(vcs_type)
     print("The following services have been detected:\n\t{0}".format('\n\t'.join(service_paths)))
 
-    for service_path in service_paths:
-        if action == "build":
-            print("Building: {0}".format(service_path))
-            docker_build.main(service_path, default_tag)
-        elif action == "publish":
-            print("Publishing: {0}".format(service_path))
-            docker_push.main(service_path)
-        elif action == "deploy":
-            image_tar_file = common_vars.get_service_variables(service_path)["image_tar_file"]
-            print("Deploying: {0}, with tar_file in: {1}".format(service_path, image_tar_file))
-            docker_deploy.main(service_path, image_tar_file)
-        elif action == "cleanup":
-            docker_cleanup.main(service_path)
-        else:
-            print("Action not recognized. Please type 'build', 'publish', 'deploy', or cleanup")
-    
+    try:
+        for service_path in service_paths:
+            if action == "build":
+                print("Building: {0}".format(service_path))
+                docker_build.main(service_path, default_tag)
+            elif action == "publish":
+                print("Publishing: {0}".format(service_path))
+                docker_push.main(service_path)
+            elif action == "deploy":
+                image_tar_file = common_vars.get_service_variables(service_path)["image_tar_file"]
+                print("Deploying: {0}, with tar_file in: {1}".format(service_path, image_tar_file))
+                docker_deploy.main(service_path, image_tar_file)
+            elif action == "cleanup":
+                docker_cleanup.main(service_path)
+            else:
+                print("Action not recognized. Please type 'build', 'publish', 'deploy', or cleanup")
+
+    except subprocess.CalledProcessError as e:
+        print e.output;
+        raise e;
+
 if  __name__ == "__main__":
     main()
