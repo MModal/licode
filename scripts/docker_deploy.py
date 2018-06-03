@@ -40,18 +40,25 @@ def display_options(services):
             version = services[server][service]["version"]
             print("""{0:>50}{1:>35}""".format(service, version))
     
+    previous_user = ""
+    previous_public_key = ""
     for server in services.keys():
         server_dictionary = {}
-        user = raw_input("\nWhat user will you be using to deploy to {}? (Leave empty if same as current user):\n".format(server)) 
+        user = raw_input("\nWhat user will you be using to deploy to {}? (Leave empty if same as previous user):\n".format(server)) 
         if not user:
-            user = getpass.getuser()
-            print("Using user: {}\n".format(user))
+            user = previous_user;
+        else:
+            previous_user = user;
+
         server_dictionary.update({"user":user})
         
-        public_key = raw_input("What is the location of the public key for {}?: \n".format(server))
+        public_key = raw_input("What is the location of the public key for {}?(Leave empty if same as previous key): \n".format(server))
+        if not public_key:
+            public_key = previous_public_key;
         if os.path.isfile(public_key):
-             public_key = "-i " + public_key 
-             server_dictionary.update({"public_key":public_key})
+            previous_public_key = public_key;
+            public_key = "-i " + public_key 
+            server_dictionary.update({"public_key":public_key})
         else:
             raise IOError("Public key '{}' not found.".format(public_key))
         
@@ -72,7 +79,7 @@ def restart_remote_syslog(credentials_dict, server):
     user_server = user + "@" + server
     sudo_ssh_command = "ssh {} {} 'sudo sh -c \"service syslog restart\"'".format(public_key,user_server)
 
-    subprocess.check_output(
+    print subprocess.check_output(
     sudo_ssh_command,
     shell = True,
     stderr = subprocess.STDOUT
@@ -89,6 +96,7 @@ def deploy_prod():
     credentials_dict = display_options(config_file)
 
     for server in config_file.keys():
+         print("Adding necessary syslog rules to {}".format(server))
          credentials = credentials_dict[server]
          add_syslog_rule(credentials, server, "scribe-operations")
          for service in config_file[server].keys():
@@ -115,7 +123,10 @@ def deploy_prod():
 
              #Save Docker Image as tar
              print("Saving the docker image for: {} as a tar file".format(service+":"+version))
-             save_image(repo, service, version, image_tar_file)
+             if os.path.isfile(image_tar_file):
+                 print("Tar file already existed. Will not create it again.")
+             else:
+                 save_image(repo, service, version, image_tar_file)
 
              #SCP the docker image to the target 
              print("Transferring the image {} over scp.".format(image_tar_file))
@@ -134,21 +145,21 @@ def deploy_prod():
              ssh_script = """ssh {0} {1} \"{2}\" """.format(public_key, user + "@" + server, ssh_payload)
 
              #Execute it over ssh
-             subprocess.check_output(
+             print subprocess.check_output(
                      ssh_script,
                      stderr = subprocess.STDOUT,
                      shell=True)
              print("Deployment succesfull!")
     
 def pull_docker_image(repo, service, version):
-    subprocess.check_output(
+    print subprocess.check_output(
     "docker pull {}{}:{}".format(repo,service, version),
     shell=True,
     stderr = subprocess.STDOUT
     )
 
 def save_image(repo,service, version,location):
-    subprocess.check_output(
+    print subprocess.check_output(
     "docker save -o {0} {1}{2}:{3}".format(location, repo, service, version),
     shell=True,
     stderr = subprocess.STDOUT
@@ -186,8 +197,8 @@ def add_syslog_rule(credentials_dict, server, service_name):
 
     ssh_payload = """ ssh {} {} "bash -s" < syslogScript.sh {}
     """.format( public_key, user_server, service_name)
-   
-    subprocess.check_output(
+    
+    print subprocess.check_output(
     ssh_payload,
     shell=True,
     stderr = subprocess.STDOUT
