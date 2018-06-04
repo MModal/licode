@@ -1,6 +1,6 @@
 {
     "service_name": "licode",
     "docker_dev": {
-        "docker_run_flags": "--net=host -e MIN_PORT=58045 -e MAX_PORT=58140 -e PUBLIC_IP=10.0.2.15 -e ERIZO_PORT=9443 -e ERIZO_LISTEN_PORT=9443 -e ERIZO_SSL=true -e ERIZO_LISTEN_SSL=true "
+        "docker_run_flags": "--net=host -e SSID=58dab61393122f2dfae2286c -e SSKEY=27717 -e TURN_USERNAME=turnUser -e TURN_CRED=mmodal! -e PUBLIC_IP=34.205.181.64 -e MIN_PORT=58045 -e MAX_PORT=58140 -e ERIZO_PORT=9443 -e ERIZO_LISTEN_PORT=9443 -e ERIZO_SSL=true -e ERIZO_LISTEN_SSL=true"
     }
 }

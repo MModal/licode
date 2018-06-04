@@ -79,12 +79,26 @@ run_mongo() {
   dbURL=`echo $dbURL| cut -d'"' -f 1`
 
   echo [licode] Creating superservice in $dbURL
-  mongo $dbURL --eval "db.services.insert({name: 'superService', key: '$RANDOM', rooms: []})"
-  SERVID=`mongo $dbURL --quiet --eval "db.services.findOne()._id"`
-  SERVKEY=`mongo $dbURL --quiet --eval "db.services.findOne().key"`
 
-  SERVID=`echo $SERVID| cut -d'"' -f 2`
-  SERVID=`echo $SERVID| cut -d'"' -f 1`
+  if [ -z "$SSID" ] && [ -z "$SSKEY" ]; then
+    SERVID=`mongo $dbURL --quiet --eval "db.services.findOne()._id"`
+    SERVKEY=`mongo $dbURL --quiet --eval "db.services.findOne().key"`
+    SERVID=`echo $SERVID| cut -d'"' -f 2`
+    SERVID=`echo $SERVID| cut -d'"' -f 1`
+
+    if [ "$SERVID" -eq "$SSID" ] && [ "$SERVKEY" -eq "$SSSKEY" ] ; then
+        echo [licode] Using existing SuperService ID: "$SSID" and key: "$SSKEY"
+    else
+        echo [licode] ERROR: Found existing ID of "$SERVID" and key "$SERVKEY", which do not match the passed ID: "$SSID" and key: "$SSKEY"
+        exit 1
+    fi
+  else 
+    mongo $dbURL --eval "db.services.insert({name: 'superService', key: '$RANDOM', rooms: []})"
+    SERVID=`mongo $dbURL --quiet --eval "db.services.findOne()._id"`
+    SERVKEY=`mongo $dbURL --quiet --eval "db.services.findOne().key"`
+    SERVID=`echo $SERVID| cut -d'"' -f 2`
+    SERVID=`echo $SERVID| cut -d'"' -f 1`
+  fi
 
   if [ -f "$BUILD_DIR/mongo.log" ]; then
     echo "Mongo Logs: "
@@ -180,6 +194,9 @@ if [ "$ERIZOCONTROLLER" = "true" ]; then
   if [ ! -z "$ERIZO_LISTEN_PORT" ]
   then 
     echo "config.erizoController.listen_port = '$ERIZO_LISTEN_PORT';" >> /opt/licode/licode_config.js
+  fi
+  if [ ! -z "$TURN_USERNAME" ] && [ ! -z "$TURN_CRED" ] && [ ! -z "$PUBLIC_IP" ] 
+    echo "config.erizoController.ice_servers = [{"url":"stun:$PUBLIC_IP:3478"}, {"username":"$TURN_USERNAME","url":"turn:$PUBLIC_IP:3478","credential":"$TURN_CRED"}, {"username":"$TURN_USERNAME","url":"turn:$PUBLIC_IP:5349","credential":"$TURN_CRED"}]"
   fi
   run_erizoController
 fi
