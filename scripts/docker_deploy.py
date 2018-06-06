@@ -141,7 +141,7 @@ def deploy_prod():
              #Build the entire script.
              #TODO: Break this apart into separate ssh call for better management
              print("Deploying the container for: {}.".format(service))
-             ssh_payload = fetch_running_services_script + log_message_script + docker_load(remote_tar_location) + docker_stop(container) + docker_run(container, flags, repo_service, version)
+             ssh_payload = fetch_running_services_script + log_message_script + docker_load(remote_tar_location) + docker_stop(repo_service) + docker_run(container, flags, repo_service, version)
              ssh_script = """ssh {0} {1} \"{2}\" """.format(public_key, user + "@" + server, ssh_payload)
 
              #Execute it over ssh
@@ -166,9 +166,13 @@ def save_image(repo,service, version,location):
     )
 
 def docker_stop(container):
-    docker_stop_script = """RUNNING=\$(sudo docker ps -a | grep {0} | awk '{{print \$1 }}');
-    [ -z \"\${{RUNNING}}\" ] || sudo docker stop {0};
-    [ -z \"\${{RUNNING}}\" ] || sudo docker rm {0};""".format(container)
+    
+    docker_stop_script = """sudo docker ps -a | grep {0} | while read -r line; do
+        SERVICE_ID=\$( echo \${{line}} | awk '{{print \$1}}');
+        sudo docker stop \"\${{SERVICE_ID}}\" || true;
+        sudo docker rm \"\${{SERVICE_ID}}\" || true;
+        done
+    """.format(container)
  
     return docker_stop_script
 
@@ -239,7 +243,7 @@ def main(service_path, tar_file):
 
     #Stop the remote docker containers
     print("Stopping the remote docker container:")
-    execute_ssh_command(credentials, server, docker_stop(container))
+    execute_ssh_command(credentials, server, docker_stop(repo))
     #Load the docker image 
     print("Remotely loading the image to docker:")
     execute_ssh_command(credentials, server, docker_load(remote_image))

@@ -62,37 +62,48 @@ run_rabbitmq() {
 }
 
 run_mongo() {
-  if ! pgrep mongod; then
-    echo [licode] Starting mongodb
-    if [ ! -d "$DB_DIR" ]; then
-      mkdir -p "$DB_DIR"/db
-    fi
-    mongod --nojournal --dbpath $DB_DIR --logpath $BUILD_DIR/mongo.log --fork
-    sleep 5
-  else
-    echo [licode] mongodb already running
-  fi
-
   dbURL=`grep "config.nuve.dataBaseURL" $SCRIPTS/licode_default.js`
 
   dbURL=`echo $dbURL| cut -d'"' -f 2`
   dbURL=`echo $dbURL| cut -d'"' -f 1`
 
   echo [licode] Creating superservice in $dbURL
+  
+  {
+    NUVEDB=$(mongo $dbURL --quiet --eval "printjson(db.adminCommand( 'listDatabases' ))" | grep "nuvedb")
+  } || {
+    echo [licode]
+    NUVEDB=""
+  }
 
-  if [ -z "$SSID" ] && [ -z "$SSKEY" ]; then
+  if [ ! -z "$SSID" ] && [ ! -z "$SSKEY" ]; then
+    if [ ! -z "$NUVEDB" ]; then
     SERVID=`mongo $dbURL --quiet --eval "db.services.findOne()._id"`
     SERVKEY=`mongo $dbURL --quiet --eval "db.services.findOne().key"`
     SERVID=`echo $SERVID| cut -d'"' -f 2`
     SERVID=`echo $SERVID| cut -d'"' -f 1`
 
-    if [ "$SERVID" -eq "$SSID" ] && [ "$SERVKEY" -eq "$SSSKEY" ] ; then
-        echo [licode] Using existing SuperService ID: "$SSID" and key: "$SSKEY"
+    if [ "$SERVID" = "$SSID" ] && [ "$SERVKEY" = "$SSKEY" ] ; then
+        echo [licode] Using SuperService ID: "$SSID" and key: "$SSKEY" that matched existing ones.
+        SERVID="$SSID"
+        SERVKEY="$SSKEY"
     else
         echo [licode] ERROR: Found existing ID of "$SERVID" and key "$SERVKEY", which do not match the passed ID: "$SSID" and key: "$SSKEY"
         exit 1
     fi
-  else 
+    else
+       echo [licode] No existing nuvedb detected. Will set the passed in values of SuperService ID: "$SSID" and key: "$SSKEY"
+      SERVID="$SSID"
+      SERVKEY="$SSKEY"
+      {
+      mongo $dbURL --eval "db.services.insert({_id: ObjectId('$SSID'), name: 'superService', key: '$SSKEY', rooms: []})"
+      } ||
+      {
+        echo [licode] ERROR: Unable to create nuve database in mongo. Check that mongo is running and accessible.
+        exit 1
+      }
+    fi
+  else
     mongo $dbURL --eval "db.services.insert({name: 'superService', key: '$RANDOM', rooms: []})"
     SERVID=`mongo $dbURL --quiet --eval "db.services.findOne()._id"`
     SERVKEY=`mongo $dbURL --quiet --eval "db.services.findOne().key"`
@@ -100,13 +111,8 @@ run_mongo() {
     SERVID=`echo $SERVID| cut -d'"' -f 1`
   fi
 
-  if [ -f "$BUILD_DIR/mongo.log" ]; then
-    echo "Mongo Logs: "
-    cat $BUILD_DIR/mongo.log
-  fi
-
-  echo [licode] SuperService ID $SERVID
-  echo [licode] SuperService KEY $SERVKEY
+  echo [licode] SuperService ID "$SERVID"
+  echo [licode] SuperService KEY "$SERVKEY"
   cd $BUILD_DIR
   replacement=s/_auto_generated_ID_/${SERVID}/
   sed $replacement $SCRIPTS/licode_default.js > $BUILD_DIR/licode_1.js
@@ -195,8 +201,8 @@ if [ "$ERIZOCONTROLLER" = "true" ]; then
   then 
     echo "config.erizoController.listen_port = '$ERIZO_LISTEN_PORT';" >> /opt/licode/licode_config.js
   fi
-  if [ ! -z "$TURN_USERNAME" ] && [ ! -z "$TURN_CRED" ] && [ ! -z "$PUBLIC_IP" ] 
-    echo "config.erizoController.ice_servers = [{"url":"stun:$PUBLIC_IP:3478"}, {"username":"$TURN_USERNAME","url":"turn:$PUBLIC_IP:3478","credential":"$TURN_CRED"}, {"username":"$TURN_USERNAME","url":"turn:$PUBLIC_IP:5349","credential":"$TURN_CRED"}]"
+  if [ ! -z "$TURN_USERNAME" ] && [ ! -z "$TURN_CRED" ] && [ ! -z "$PUBLIC_IP" ] ; then
+    echo "config.erizoController.ice_servers = [{\"url\":\"stun:'$PUBLIC_IP':3478\"}, {\"username\":\"'$TURN_USERNAME'\",\"url\":\"turn:'$PUBLIC_IP':3478\",\"credential\":\"'$TURN_CRED'\"}, {\"username\":\"'$TURN_USERNAME'\",\"url\":\"turn:'$PUBLIC_IP':5349\",\"credential\":\"'$TURN_CRED'\"}]" >> /opt/licode/licode_config.js
   fi
   run_erizoController
 fi
@@ -206,10 +212,6 @@ if [ "$ERIZOAGENT" = "true" ]; then
   echo "config.erizo.minport = '$MIN_PORT';" >> /opt/licode/licode_config.js
   echo "config.erizo.maxport = '$MAX_PORT';" >> /opt/licode/licode_config.js
     run_erizoAgent
-fi
-
-if [ "$BASICEXAMPLE" = "true" ]; then
-  run_basicExample
 fi
 
 wait
