@@ -72,31 +72,30 @@ run_mongo() {
   {
     NUVEDB=$(mongo $dbURL --quiet --eval "printjson(db.adminCommand( 'listDatabases' ))" | grep "nuvedb")
   } || {
-    echo [licode]
     NUVEDB=""
   }
 
-  if [ ! -z "$SSID" ] && [ ! -z "$SSKEY" ]; then
+  if [ ! -z "$NUVE_ID" ] && [ ! -z "$NUVE_KEY" ]; then
     if [ ! -z "$NUVEDB" ]; then
-    SERVID=`mongo $dbURL --quiet --eval "db.services.findOne()._id"`
-    SERVKEY=`mongo $dbURL --quiet --eval "db.services.findOne().key"`
-    SERVID=`echo $SERVID| cut -d'"' -f 2`
-    SERVID=`echo $SERVID| cut -d'"' -f 1`
+     SERVID=`mongo $dbURL --quiet --eval "db.services.findOne()._id"`
+     SERVKEY=`mongo $dbURL --quiet --eval "db.services.findOne().key"`
+     SERVID=`echo $SERVID| cut -d'"' -f 2`
+     SERVID=`echo $SERVID| cut -d'"' -f 1`
 
-    if [ "$SERVID" = "$SSID" ] && [ "$SERVKEY" = "$SSKEY" ] ; then
-        echo [licode] Using SuperService ID: "$SSID" and key: "$SSKEY" that matched existing ones.
-        SERVID="$SSID"
-        SERVKEY="$SSKEY"
-    else
-        echo [licode] ERROR: Found existing ID of "$SERVID" and key "$SERVKEY", which do not match the passed ID: "$SSID" and key: "$SSKEY"
-        exit 1
+     if [ "$SERVID" = "$NUVE_ID" ] && [ "$SERVKEY" = "$NUVE_KEY" ] ; then
+       echo [licode] Using SuperService ID: "$NUVE_ID" and key: "$NUVE_KEY" that matched existing ones.
+       SERVID="$NUVE_ID"
+       SERVKEY="$NUVE_KEY"
+     else
+       echo [licode] ERROR: Found existing ID of "$SERVID" and key "$SERVKEY", which do not match the passed ID: "$NUVE_ID" and key: "$NUVE_KEY"
+       exit 1
     fi
     else
-       echo [licode] No existing nuvedb detected. Will set the passed in values of SuperService ID: "$SSID" and key: "$SSKEY"
-      SERVID="$SSID"
-      SERVKEY="$SSKEY"
+      echo [licode] No existing nuvedb detected. Will set the passed in values of SuperService ID: "$NUVE_ID" and key: "$NUVE_KEY"
+      SERVID="$NUVE_ID"
+      SERVKEY="$NUVE_KEY"
       {
-      mongo $dbURL --eval "db.services.insert({_id: ObjectId('$SSID'), name: 'superService', key: '$SSKEY', rooms: []})"
+      mongo $dbURL --eval "db.services.insert({_id: ObjectId('$NUVE_ID'), name: 'superService', key: '$NUVE_KEY', rooms: []})"
       } ||
       {
         echo [licode] ERROR: Unable to create nuve database in mongo. Check that mongo is running and accessible.
@@ -157,9 +156,9 @@ if [ "$MONGODB" = "true" ]; then
   run_mongo
 fi
 
-if [ "$RABBITMQ" = "true" ]; then
-  run_rabbitmq
-fi
+#if [ "$RABBITMQ" = "true" ]; then
+#  run_rabbitmq
+#fi
 
 if [ ! -f "$ROOT"/licode_config.js ]; then
     cp "$SCRIPTS"/licode_default.js "$ROOT"/licode_config.js
@@ -169,14 +168,6 @@ if [ "$ERIZOAGENT" = "true" ] || [ "$ERIZOCONTROLLER" = "true" ] || [ "$NUVE" = 
   if [ ! -z "$RABBIT_URL" ]; then 
       echo "config.rabbit.url = '$RABBIT_URL';" >> /opt/licode/licode_config.js
   fi
-
-  if [ ! -z "$NUVE_ID" ]; then 
-      echo "config.nuve.superserviceID = '$NUVE_ID';" >> /opt/licode/licode_config.js
-  fi
-
-  if [ ! -z "$NUVE_KEY" ]; then 
-      echo "config.nuve.superserviceKey = '$NUVE_KEY';" >> /opt/licode/licode_config.js
-  fi
 fi
 
 if [ "$NUVE" = "true" ]; then
@@ -184,7 +175,11 @@ if [ "$NUVE" = "true" ]; then
 fi
 
 if [ "$ERIZOCONTROLLER" = "true" ]; then
-  echo "config.erizoController.publicIP = '$ERIZO_CONTROLLER_IP';" >> /opt/licode/licode_config.js
+  if [ ! -z "$ERIZO_CONTROLLER_IP" ]
+  then 
+    echo "config.erizoController.publicIP = '$ERIZO_CONTROLLER_IP';" >> /opt/licode/licode_config.js
+  fi
+
   if [ ! -z "$ERIZO_PORT" ]
   then 
     echo "config.erizoController.port = '$ERIZO_PORT';" >> /opt/licode/licode_config.js
@@ -208,7 +203,11 @@ if [ "$ERIZOCONTROLLER" = "true" ]; then
 fi
 
 if [ "$ERIZOAGENT" = "true" ]; then
-  echo "config.erizoAgent.publicIP = '$ERIZO_AGENT_IP';" >> /opt/licode/licode_config.js
+  if [ ! -z "$ERIZO_AGENT_IP"  ]
+  then
+    echo "config.erizoAgent.publicIP = '$ERIZO_AGENT_IP';" >> /opt/licode/licode_config.js
+  fi
+
   echo "config.erizo.minport = '$MIN_PORT';" >> /opt/licode/licode_config.js
   echo "config.erizo.maxport = '$MAX_PORT';" >> /opt/licode/licode_config.js
     run_erizoAgent

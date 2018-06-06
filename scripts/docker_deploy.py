@@ -181,12 +181,12 @@ def docker_load(image_tar_file):
 
     return docker_load_script 
 
-def docker_run(container, flags, repo, tag):
+def docker_run(container, flags, repo, tag, commands=""):
     docker_run_script = """sudo docker run -d \
     --log-driver \"syslog\" --log-opt tag=\"{0}/{{{{.ID}}}}\" \
     {1} \
-    --name={0}\
-    {2}:{3}""".format(container, flags, repo, tag)
+    --name={0} {3}\
+    {3}:{5}""".format(container, flags, commands, repo, tag)
 
     return docker_run_script.strip()
 
@@ -227,7 +227,7 @@ def main(service_path, tar_file):
     repo = service_vars["repo"]
     service_name = service_vars["service_name"]
     volume = service_vars["volume"]
-    flags = service_vars["docker_run_flags"] 
+    flags = service_vars["flags"] 
     user = service_vars["user"] 
     credentials = {"user":user, "public_key": "-i " + key_location}
 

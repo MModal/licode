@@ -188,7 +188,7 @@ def get_service_variables(service_path, default_tag="default"):
     unique_tag = "build-{0}-{1}-{2}".format(branch, branch_id, build_number)
     network = get_network(config, config_path)
     volume = get_volume(config, config_path) 
-    docker_run_flags = get_from_config_file(config_path, config, "docker_run_flags")
+    flags = get_from_config_file(config_path, config, "flags")
     
     service_variables = dict(locals())
     return service_variables
