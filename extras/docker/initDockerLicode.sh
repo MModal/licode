@@ -61,7 +61,7 @@ run_rabbitmq() {
   sleep 3
 }
 
-run_mongo() {
+create_superservice() {
   dbURL=`grep "config.nuve.dataBaseURL" $SCRIPTS/licode_default.js`
 
   dbURL=`echo $dbURL| cut -d'"' -f 2`
@@ -121,6 +121,8 @@ run_mongo() {
 
 }
 run_nuve() {
+  create_superservice
+
   echo "Starting Nuve"
   cd $ROOT/nuve/nuveAPI
   node nuve.js &
@@ -165,6 +167,10 @@ if [ ! -f "$ROOT"/licode_config.js ]; then
 fi
 
 if [ "$ERIZOAGENT" = "true" ] || [ "$ERIZOCONTROLLER" = "true" ] || [ "$NUVE" = "true" ] ; then
+  if [ ! -z "$NUVE_ID" ] && [ ! -z "$NUVE_KEY" ]; then 
+      echo "config.nuve.superserviceID = '$NUVE_ID';" >> /opt/licode/licode_config.js
+      echo "config.nuve.superserviceKey= '$NUVE_Key';" >> /opt/licode/licode_config.js
+  fi
   if [ ! -z "$RABBIT_URL" ]; then 
       echo "config.rabbit.url = '$RABBIT_URL';" >> /opt/licode/licode_config.js
   fi
@@ -210,7 +216,7 @@ if [ "$ERIZOAGENT" = "true" ]; then
 
   echo "config.erizo.minport = '$MIN_PORT';" >> /opt/licode/licode_config.js
   echo "config.erizo.maxport = '$MAX_PORT';" >> /opt/licode/licode_config.js
-    run_erizoAgent
+  run_erizoAgent
 fi
 
 wait

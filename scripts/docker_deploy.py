@@ -170,7 +170,6 @@ def docker_stop(container):
     docker_stop_script = """sudo docker ps -a | grep {0} | while read -r line; do
         SERVICE_ID=\$( echo \${{line}} | awk '{{print \$1}}');
         sudo docker stop \"\${{SERVICE_ID}}\" || true;
-        sudo docker rm \"\${{SERVICE_ID}}\" || true;
         done
     """.format(container)
  
@@ -185,8 +184,8 @@ def docker_run(container, flags, repo, tag, commands=""):
     docker_run_script = """sudo docker run -d \
     --log-driver \"syslog\" --log-opt tag=\"{0}/{{{{.ID}}}}\" \
     {1} \
-    --name={0} {3}\
-    {3}:{5}""".format(container, flags, commands, repo, tag)
+    --name={0} {2}\
+    {3}:{4}""".format(container, flags, commands, repo, tag)
 
     return docker_run_script.strip()
 
