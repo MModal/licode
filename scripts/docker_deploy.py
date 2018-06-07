@@ -170,6 +170,7 @@ def docker_stop(container):
     docker_stop_script = """sudo docker ps -a | grep {0} | while read -r line; do
         SERVICE_ID=\$( echo \${{line}} | awk '{{print \$1}}');
         sudo docker stop \"\${{SERVICE_ID}}\" || true;
+        sudo docker rm \"\${{SERVICE_ID}}\" || true;
         done
     """.format(container)
  

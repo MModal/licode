@@ -154,9 +154,9 @@ cd $ROOT/scripts
 run_nvm
 nvm use
 
-if [ "$MONGODB" = "true" ]; then
-  run_mongo
-fi
+#if [ "$MONGODB" = "true" ]; then
+#  run_mongo
+#fi
 
 #if [ "$RABBITMQ" = "true" ]; then
 #  run_rabbitmq
@@ -169,7 +169,7 @@ fi
 if [ "$ERIZOAGENT" = "true" ] || [ "$ERIZOCONTROLLER" = "true" ] || [ "$NUVE" = "true" ] ; then
   if [ ! -z "$NUVE_ID" ] && [ ! -z "$NUVE_KEY" ]; then 
       echo "config.nuve.superserviceID = '$NUVE_ID';" >> /opt/licode/licode_config.js
-      echo "config.nuve.superserviceKey= '$NUVE_Key';" >> /opt/licode/licode_config.js
+      echo "config.nuve.superserviceKey= '$NUVE_KEY';" >> /opt/licode/licode_config.js
   fi
   if [ ! -z "$RABBIT_URL" ]; then 
       echo "config.rabbit.url = '$RABBIT_URL';" >> /opt/licode/licode_config.js
@@ -203,7 +203,7 @@ if [ "$ERIZOCONTROLLER" = "true" ]; then
     echo "config.erizoController.listen_port = '$ERIZO_LISTEN_PORT';" >> /opt/licode/licode_config.js
   fi
   if [ ! -z "$TURN_USERNAME" ] && [ ! -z "$TURN_CRED" ] && [ ! -z "$PUBLIC_IP" ] ; then
-    echo "config.erizoController.ice_servers = [{\"url\":\"stun:'$PUBLIC_IP':3478\"}, {\"username\":\"'$TURN_USERNAME'\",\"url\":\"turn:'$PUBLIC_IP':3478\",\"credential\":\"'$TURN_CRED'\"}, {\"username\":\"'$TURN_USERNAME'\",\"url\":\"turn:'$PUBLIC_IP':5349\",\"credential\":\"'$TURN_CRED'\"}]" >> /opt/licode/licode_config.js
+    echo "config.erizoController.iceServers = [{\"url\":\"stun:'$PUBLIC_IP':3478\"}, {\"username\":\"'$TURN_USERNAME'\",\"url\":\"turn:'$PUBLIC_IP':3478\",\"credential\":\"'$TURN_CRED'\"}, {\"username\":\"'$TURN_USERNAME'\",\"url\":\"turn:'$PUBLIC_IP':5349\",\"credential\":\"'$TURN_CRED'\"}]" >> /opt/licode/licode_config.js
   fi
   run_erizoController
 fi
