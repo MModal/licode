@@ -235,7 +235,6 @@ def main(service_path, tar_file):
     print("Transferring the docker image to remote over scp...")
     scp_image(user, credentials["public_key"], image_tar_file, server, remote_location)
 
-
     #Add syslog confs needed for the service
     print("Adding the necessary syslog conf rules")
     add_syslog_rule(credentials, server, service_name)
@@ -244,9 +243,11 @@ def main(service_path, tar_file):
     #Stop the remote docker containers
     print("Stopping the remote docker container:")
     execute_ssh_command(credentials, server, docker_stop(repo))
+
     #Load the docker image 
     print("Remotely loading the image to docker:")
     execute_ssh_command(credentials, server, docker_load(remote_image))
+
     #Start the new docker container
     print("Starting the remote instance:")
     execute_ssh_command(credentials, server, docker_run(container, flags, repo, version))
@@ -254,6 +255,9 @@ def main(service_path, tar_file):
     #Delete the tar file that got transferred
     print("Deleting the tar file that got transferred")
     execute_ssh_command(credentials, server, "rm {}".format(remote_image))
+    
+    #For automatic deployments, delete all of the previous images.
+    execute_ssh_command(credentials,server,"sudo docker image prune -f")
 
     print("End of script. Deploy succesfull for {0}.".format(service_name))
 

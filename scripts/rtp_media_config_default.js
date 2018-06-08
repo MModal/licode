@@ -12,6 +12,7 @@ mediaConfig.extMappings = [
 
 mediaConfig.rtpMappings = {};
 
+
 mediaConfig.rtpMappings.vp8 = {
     payloadType: 100,
     encodingName: 'VP8',
@@ -54,14 +55,6 @@ mediaConfig.rtpMappings.ulpfec = {
     mediaType: 'video',
 };
 
-mediaConfig.rtpMappings.opus = {
-    payloadType: 111,
-    encodingName: 'opus',
-    clockRate: 48000,
-    channels: 2,
-    mediaType: 'audio',
-};
-
 mediaConfig.rtpMappings.isac16 = {
     payloadType: 103,
     encodingName: 'ISAC',
@@ -79,6 +72,15 @@ mediaConfig.rtpMappings.isac32 = {
 };
 
 */
+mediaConfig.rtpMappings.opus = {
+    payloadType: 111,
+    encodingName: 'opus',
+    clockRate: 48000,
+    channels: 2,
+    mediaType: 'audio',
+};
+
+/*
 mediaConfig.rtpMappings.pcmu = {
     payloadType: 0,
     encodingName: 'PCMU',
@@ -86,7 +88,7 @@ mediaConfig.rtpMappings.pcmu = {
     channels: 1,
     mediaType: 'audio',
 };
-/*
+
 mediaConfig.rtpMappings.pcma = {
     payloadType: 8,
     encodingName: 'PCMA',
@@ -126,7 +128,7 @@ mediaConfig.rtpMappings.cn48 = {
     channels: 1,
     mediaType: 'audio',
 };
-*/
+
 mediaConfig.rtpMappings.telephoneevent = {
     payloadType: 126,
     encodingName: 'telephone-event',
@@ -134,6 +136,6 @@ mediaConfig.rtpMappings.telephoneevent = {
     channels: 1,
     mediaType: 'audio',
 };
-
+*/
 var module = module || {};
 module.exports = mediaConfig;
