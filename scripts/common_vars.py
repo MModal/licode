@@ -184,7 +184,12 @@ def get_service_variables(service_path, default_tag="default"):
     image_tar_file = root + "/" + image_tar_name
     image_id_file = root + "/" + service_name + ".latest.build.id"
     branch_id = get_branch_id()
-    build_number = os.environ['BUILD_NUMBER'].strip()
+    build_number = "";
+    try:
+        build_number = os.environ['BUILD_NUMBER'].strip();
+    except KeyError:
+        print("No environment variable detected for Build Number, using default of 99 instead")
+        build_number = 99;
     unique_tag = "build-{0}-{1}-{2}".format(branch, branch_id, build_number)
     network = get_network(config, config_path)
     volume = get_volume(config, config_path) 
