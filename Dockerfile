@@ -28,7 +28,7 @@ COPY --from=builder --chown=nobody:nogroup /opt/licode /opt/licode
 WORKDIR /opt/licode/scripts
 
 RUN apt-get update
-RUN apt-get install g++ mongodb rabbitmq-server libssl-dev libboost-thread-dev liblog4cxx10-dev libx264. libvpx. make -y
+RUN apt-get install vim g++ mongodb rabbitmq-server libssl-dev libboost-thread-dev liblog4cxx10-dev libx264. libvpx. make -y
 RUN apt-get install python-software-properties software-properties-common -y
 RUN ./installErizo.sh -facs
 RUN ../nuve/installNuve.sh

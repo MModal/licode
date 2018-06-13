@@ -122,6 +122,7 @@ create_superservice() {
 }
 run_nuve() {
   create_superservice
+  echo "config.nuve.cloudHandlerPolicy = 'round_robin_policy.js';" >> /opt/licode/licode_config.js
 
   echo "Starting Nuve"
   cd $ROOT/nuve/nuveAPI
@@ -177,7 +178,6 @@ if [ "$ERIZOAGENT" = "true" ] || [ "$ERIZOCONTROLLER" = "true" ] || [ "$NUVE" = 
 fi
 
 if [ "$NUVE" = "true" ]; then
-  echo "config.nuve.cloudHandlerPolicy = 'round_robin_policy.js'" >> /opt/licode/licode_config.js
   run_nuve
 fi
 
