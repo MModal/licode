@@ -298,6 +298,28 @@ const Room = (altIo, altConnection, specInput) => {
     }
   };
 
+  // The socket has reconnected
+  const socketOnDisconnectPendingReconnection = () => {
+    Logger.info('Socket disconnected, will make attempts to reconnect');
+    if (that.state !== DISCONNECTED) {
+      const disconnectEvt = RoomEvent({ type: 'room-disconnected-pending-reconnection' });
+      that.dispatchEvent(disconnectEvt);
+    }
+  };
+
+  // The socket has reconnected
+  const socketOnReconnect = () => {
+    Logger.info('Socket reconnected');
+    if (that.state !== DISCONNECTED) {
+      const streamList = [];
+      that.remoteStreams.forEach((value) => {
+        streamList.push(value);
+      });
+      const reconnectEvt = RoomEvent({ type: 'room-reconnected', streams: streamList });
+      that.dispatchEvent(reconnectEvt);
+    }
+  };
+
   const socketOnICEConnectionFailed = (arg) => {
     let stream;
     if (!arg.streamId) {
@@ -795,7 +817,9 @@ const Room = (altIo, altConnection, specInput) => {
   socket.on('onDataStream', socketEventToArgs.bind(null, socketOnDataStream));
   socket.on('onUpdateAttributeStream', socketEventToArgs.bind(null, socketOnUpdateAttributeStream));
   socket.on('onRemoveStream', socketEventToArgs.bind(null, socketOnRemoveStream));
+  socket.on('reconnected', socketEventToArgs.bind(null, socketOnReconnect));
   socket.on('disconnect', socketEventToArgs.bind(null, socketOnDisconnect));
+  socket.on('disconnect-pending-reconnect', socketEventToArgs.bind(null, socketOnDisconnectPendingReconnection));
   socket.on('connection_failed', socketEventToArgs.bind(null, socketOnICEConnectionFailed));
   socket.on('error', socketEventToArgs.bind(null, socketOnError));
 

@@ -18,8 +18,10 @@ const SocketEvent = (type, specInput) => {
 const Socket = (newIo) => {
   const that = EventDispatcher();
   const defaultCallback = () => {};
+  const messageBuffer = [];
 
   that.CONNECTED = Symbol('connected');
+  that.RECONNECTING = Symbol('reconnecting');
   that.DISCONNECTED = Symbol('disconnected');
 
   that.state = that.DISCONNECTED;
@@ -31,9 +33,23 @@ const Socket = (newIo) => {
     that.emit(SocketEvent(type, { args }));
   };
 
+  const addToBuffer = (type, message, callback, error) => {
+    messageBuffer.push([type, message, callback, error]);
+  };
+
+  const flushBuffer = () => {
+    if (that.state !== that.CONNECTED) {
+      return;
+    }
+    messageBuffer.forEach((message) => {
+      that.sendMessage(...message);
+    });
+  };
+
   that.connect = (token, callback = defaultCallback, error = defaultCallback) => {
     const options = {
-      reconnect: false,
+      reconnect: true,
+      reconnectionAttempts: 25,
       secure: token.secure,
       forceNew: true,
       transports: ['websocket'],
@@ -41,6 +57,7 @@ const Socket = (newIo) => {
     };
     const transport = token.secure ? 'wss://' : 'ws://';
     socket = that.IO.connect(transport + token.host, options);
+    const clientId = token.tokenId;
 
     socket.on('onAddStream', emit.bind(that, 'onAddStream'));
 
@@ -59,10 +76,59 @@ const Socket = (newIo) => {
     socket.on('onRemoveStream', emit.bind(that, 'onRemoveStream'));
 
     // The socket has disconnected
-    socket.on('disconnect', emit.bind(that, 'disconnect'));
+    socket.on('disconnect', (reason) => {
+      Logger.debug('disconnect', reason);
+      if (reason !== 'io server disconnect' && reason !== 'io client disconnect') {
+        that.state = that.RECONNECTING;
+        emit('disconnect-pending-reconnect');
+        return;
+      }
+      emit('disconnect', reason);
+      socket.close();
+    });
 
-    socket.on('connection_failed', emit.bind(that, 'connection_failed'));
-    socket.on('error', emit.bind(that, 'error'));
+    socket.on('connection_failed', (evt) => {
+      Logger.error('connection failed');
+      emit('connection_failed', evt);
+    });
+    socket.on('error', (err) => {
+      Logger.warning('socket error:', err.message);
+      emit('error');
+    });
+    socket.on('connect_error', (err) => {
+      Logger.warning('connect error:', err.message);
+    });
+
+    socket.on('connect_timeout', (err) => {
+      Logger.warning('connect timeout, error:', err.message);
+    });
+
+    socket.on('reconnecting', (attemptNumber) => {
+      Logger.debug('reconnecting, attempet:', attemptNumber);
+    });
+
+    socket.on('reconnect', (attemptNumber) => {
+      Logger.debug('reconnected: attempet:', attemptNumber);
+      that.sendMessage('client_reconnect', clientId, () => {
+        that.state = that.CONNECTED;
+        flushBuffer();
+        emit('reconnected');
+      }, error);
+    });
+
+    socket.on('reconnect_attempt', (attemptNumber) => {
+      Logger.debug('reconnect attempt, attempet:', attemptNumber);
+    });
+
+    socket.on('reconnect_error', (err) => {
+      Logger.debug('error reconnecting, error:', err.message);
+    });
+
+    socket.on('reconnect_failed', () => {
+      Logger.warning('reconnect failed');
+      that.state = that.DISCONNECTED;
+      emit('disconnect', 'reconnect failed');
+    });
 
     // First message with the token
     that.sendMessage('token', token, (...args) => {
@@ -80,6 +146,10 @@ const Socket = (newIo) => {
   that.sendMessage = (type, msg, callback = defaultCallback, error = defaultCallback) => {
     if (that.state === that.DISCONNECTED && type !== 'token') {
       Logger.error('Trying to send a message over a disconnected Socket');
+      return;
+    }
+    if (that.state === that.RECONNECTING && type !== 'client_reconnect') {
+      addToBuffer(type, msg, callback, error);
       return;
     }
     socket.emit(type, msg, (respType, resp) => {
