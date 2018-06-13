@@ -24,7 +24,7 @@ FROM ubuntu:16.04
 
 LABEL maintainer="MModal"
 
-COPY --from=builder --chown=nobody /opt/licode /opt/licode
+COPY --from=builder --chown=nobody:nogroup /opt/licode /opt/licode
 WORKDIR /opt/licode/scripts
 
 RUN apt-get update
