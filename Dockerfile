@@ -24,7 +24,7 @@ FROM ubuntu:16.04
 
 LABEL maintainer="MModal"
 
-COPY --from=builder /opt/licode /opt/licode
+COPY --from=builder --chown=nobody /opt/licode /opt/licode
 WORKDIR /opt/licode/scripts
 
 RUN apt-get update
@@ -33,7 +33,6 @@ RUN apt-get install python-software-properties software-properties-common -y
 RUN ./installErizo.sh -facs
 RUN ../nuve/installNuve.sh
 
-RUN chown -R nobody /opt/licode/
 USER nobody
 
 ENTRYPOINT ["./initDockerLicode.sh"]
