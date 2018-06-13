@@ -177,6 +177,7 @@ if [ "$ERIZOAGENT" = "true" ] || [ "$ERIZOCONTROLLER" = "true" ] || [ "$NUVE" = 
 fi
 
 if [ "$NUVE" = "true" ]; then
+  echo "config.nuve.cloudHandlerPolicy = 'round_robin_policy.js'" >> /opt/licode/licode_config.js
   run_nuve
 fi
 
