@@ -35,9 +35,9 @@ node('Scribe_Centos_01') {
         }
   
         stage('Deploy'){
-            checkout scm
-            unstash 'dockerImage'
-            sh 'cd scripts; python -u service_detect.py --default_tag default-CI deploy'
+            //checkout scm
+            //unstash 'dockerImage'
+            //sh 'cd scripts; python -u service_detect.py --default_tag default-CI deploy'
         }    
 
     }    
