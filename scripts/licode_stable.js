@@ -5,8 +5,9 @@ var config = {}
  It's used by Nuve, ErizoController, ErizoAgent and ErizoJS
 **********************************************************/
 config.rabbit = {};
-config.rabbit.host = 'localhost'; //default value: 'localhost'
-config.rabbit.port = 5672; //default value: 5672
+//config.rabbit.host = 'localhost'; //default value: 'localhost'
+//config.rabbit.port = 5672; //default value: 5672
+config.rabbit.url = 'amqp://rabbitUser:M*Modal1710@10.5.1.29:5672';
 // Sets the AQMP heartbeat timeout to detect dead TCP Connections
 config.rabbit.heartbeat = 8; //default value: 8 seconds, 0 to disable
 config.logger = {};
@@ -63,14 +64,14 @@ config.erizoController.networkinterface = ''; //default value: ''
 // This configuration is used by the clients to reach erizoController
 // Use '' to use the public IP address instead of a hostname
 config.erizoController.hostname = ''; //default value: ''
-config.erizoController.port = 8080; //default value: 8080
+config.erizoController.port = 9443; //default value: 8080
 // Use true if clients communicate with erizoController over SSL
-config.erizoController.ssl = false; //default value: false
+config.erizoController.ssl = true; //default value: false
 
 // This configuration is used by erizoController server to listen for connections
 // Use true if erizoController listens in HTTPS.
-config.erizoController.listen_ssl = false; //default value: false
-config.erizoController.listen_port = 8080; //default value: 8080
+config.erizoController.listen_ssl = true; //default value: false
+config.erizoController.listen_port = 9443; //default value: 8080
 
 // Custom location for SSL certificates. Default located in /cert
 //config.erizoController.ssl_key = '/full/path/to/ssl.key';
@@ -80,8 +81,8 @@ config.erizoController.listen_port = 8080; //default value: 8080
 // Use the name of the inferface you want to bind to for websockets
 // config.erizoController.networkInterface = 'eth1' // default value: undefined
 
-config.erizoController.warning_n_rooms = 15; // default value: 15
-config.erizoController.limit_n_rooms = 20; // default value: 20
+config.erizoController.warning_n_rooms = 55; // default value: 15
+config.erizoController.limit_n_rooms = 60; // default value: 20
 config.erizoController.interval_time_keepAlive = 1000; // default value: 1000
 
 // Roles to be used by services
@@ -116,7 +117,7 @@ config.erizoController.cloudHandlerPolicy = 'default_policy.js'; // default valu
 config.erizoAgent = {};
 
 // Max processes that ErizoAgent can run
-config.erizoAgent.maxProcesses 	  = 1; // default value: 1
+config.erizoAgent.maxProcesses 	  = 200; // default value: 1
 // Number of precesses that ErizoAgent runs when it starts. Always lower than or equals to maxProcesses.
 config.erizoAgent.prerunProcesses = 1; // default value: 1
 
@@ -147,7 +148,7 @@ config.erizo = {};
 //you can control log levels in [licode_path]/erizo_controller/erizoAgent/log4cxx.properties
 
 // Number of workers that will be used to handle WebRtcConnections
-config.erizo.numWorkers = 24;
+config.erizo.numWorkers = 8;
 
 // Number of workers what will be used for IO (including ICE logic)
 config.erizo.numIOWorkers = 1;
@@ -169,8 +170,8 @@ config.erizo.turnpass = '';
 config.erizo.networkinterface = ''; //default value: ''
 
 //note, this won't work with all versions of libnice. With 0 all the available ports are used
-config.erizo.minport = 0; // default value: 0
-config.erizo.maxport = 0; // default value: 0
+config.erizo.minport = 58045; // default value: 0
+config.erizo.maxport = 59140; // default value: 0
 
 //Use of internal nICEr library instead of libNice.
 config.erizo.useNicer = false;  // default value: false

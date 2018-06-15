@@ -167,9 +167,9 @@ if [ ! -f "$ROOT"/licode_config.js ]; then
     
     #Select config file.
     if [ ! -z "$CONFIG" ]; then
-        cp "$SCRIPTS"/licode_default.js "$ROOT"/licode_config.js
-    else
         cp "$SCRIPTS"/"$CONFIG".js "$ROOT"/licode_config.js
+    else
+        cp "$SCRIPTS"/licode_default.js "$ROOT"/licode_config.js
     fi
     
     

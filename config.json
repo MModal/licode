@@ -1,7 +1,7 @@
 {
     "service_name": "licode",
     "docker_dev": {
-        "flags": "--net=host -e ERIZO_AGENT_IP=34.205.181.64 -e NUVE_ID=58dab61393122f2dfae2286c -e NUVE_KEY=27717 -e TURN_USERNAME=turnUser -e TURN_CRED=mmodal! -e PUBLIC_IP=34.205.181.64 -e MIN_PORT=58045 -e MAX_PORT=58140 -e ERIZO_PORT=9443 -e ERIZO_LISTEN_PORT=9443 -e ERIZO_SSL=true -e ERIZO_LISTEN_SSL=true",
+        "flags": "--net=host -e ERIZO_AGENT_IP=34.205.181.64 -e ERIZO_CONTROLLER_IP=34.205.181.64 -e CONFIG=licode_dev",
         "commands":""
     }
 }

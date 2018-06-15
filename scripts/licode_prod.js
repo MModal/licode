@@ -7,7 +7,7 @@ var config = {}
 config.rabbit = {};
 //config.rabbit.host = 'localhost'; //default value: 'localhost'
 //config.rabbit.port = 5672; //default value: 5672
-config.rabbit.url = 'amqp://rabbitUser:M*Modal1710@10.5.1.29:5672';
+config.rabbit.url = 'amqp://scribe:jPPsZcqU5eUwxApysRT5YCcn@10.0.0.157:5672'
 // Sets the AQMP heartbeat timeout to detect dead TCP Connections
 config.rabbit.heartbeat = 8; //default value: 8 seconds, 0 to disable
 config.logger = {};
@@ -25,8 +25,8 @@ config.cloudProvider.name = '';
 **********************************************************/
 config.nuve = {};
 config.nuve.dataBaseURL = "localhost/nuvedb"; // default value: 'localhost/nuvedb'
-config.nuve.superserviceID = '5b0d82e50c366834a1aa57ea'; // default value: ''
-config.nuve.superserviceKey = '15884'; // default value: ''
+config.nuve.superserviceID = '5923397321562ac86d3c515c'; // default value: ''
+config.nuve.superserviceKey = '24090'; // default value: ''
 config.nuve.testErizoController = 'localhost:8080'; // default value: 'localhost:8080'
 // Nuve Cloud Handler policies are in nuve/nuveAPI/ch_policies/ folder
 config.nuve.cloudHandlerPolicy = 'default_policy.js'; // default value: 'default_policy.js'
@@ -50,7 +50,8 @@ config.erizoController = {};
 //     "credential": password,
 //     "url": url
 // }
-config.erizoController.iceServers = [{'url': 'stun:stun.l.google.com:19302'}]; // default value: [{'url': 'stun:stun.l.google.com:19302'}]
+//config.erizoController.iceServers = [{'url': 'stun:stun.l.google.com:19302'}]; // default value: [{'url': 'stun:stun.l.google.com:19302'}]
+config.erizoController.iceServers = [{"url":"stun:34.225.136.21:3478"}, {"username":"scribe","url":"turn:34.225.136.21:3478","credential":"WmLxkgnQnzrNFt5UJjhv37Ra"}, {"username":"scribe","url":"turn:34.225.136.21:5349","credential":"WmLxkgnQnzrNFt5UJjhv37Ra"}]
 
 // Default and max video bandwidth parameters to be used by clients
 config.erizoController.defaultVideoBW = 300; //default value: 300
@@ -117,13 +118,13 @@ config.erizoController.cloudHandlerPolicy = 'default_policy.js'; // default valu
 config.erizoAgent = {};
 
 // Max processes that ErizoAgent can run
-config.erizoAgent.maxProcesses 	  = 1; // default value: 1
+config.erizoAgent.maxProcesses 	  = 200; // default value: 1
 // Number of precesses that ErizoAgent runs when it starts. Always lower than or equals to maxProcesses.
 config.erizoAgent.prerunProcesses = 1; // default value: 1
 
 // Public erizoAgent IP for ICE candidates (useful when behind NATs)
 // Use '' to automatically get IP from the interface
-config.erizoAgent.publicIP = ''; //default value: ''
+config.erizoAgent.publicIP = '34.225.136.21'; //default value: ''
 config.erizoAgent.networkinterface = ''; //default value: ''
 
 // Use the name of the inferface you want to bind for ICE candidates
@@ -182,3 +183,4 @@ config.erizo.disabledHandlers = []; // there are no handlers disabled by default
 // Following lines are always needed.
 var module = module || {};
 module.exports = config;
+
