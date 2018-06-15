@@ -164,17 +164,60 @@ nvm use
 #fi
 
 if [ ! -f "$ROOT"/licode_config.js ]; then
-    cp "$SCRIPTS"/licode_default.js "$ROOT"/licode_config.js
-fi
+    
+    #Select config file.
+    if [ ! -z "$CONFIG" ]; then
+        cp "$SCRIPTS"/licode_default.js "$ROOT"/licode_config.js
+    else
+        cp "$SCRIPTS"/"$CONFIG".js "$ROOT"/licode_config.js
+    fi
+    
+    
+    #Erizo Agent configuration
+    if [ ! -z "$ERIZO_AGENT_IP"  ]
+    then
+      echo "config.erizoAgent.publicIP = '$ERIZO_AGENT_IP';" >> /opt/licode/licode_config.js
+    fi
 
-if [ "$ERIZOAGENT" = "true" ] || [ "$ERIZOCONTROLLER" = "true" ] || [ "$NUVE" = "true" ] ; then
-  if [ ! -z "$NUVE_ID" ] && [ ! -z "$NUVE_KEY" ]; then 
-      echo "config.nuve.superserviceID = '$NUVE_ID';" >> /opt/licode/licode_config.js
-      echo "config.nuve.superserviceKey= '$NUVE_KEY';" >> /opt/licode/licode_config.js
-  fi
-  if [ ! -z "$RABBIT_URL" ]; then 
-      echo "config.rabbit.url = '$RABBIT_URL';" >> /opt/licode/licode_config.js
-  fi
+    echo "config.erizo.minport = '$MIN_PORT';" >> /opt/licode/licode_config.js
+    echo "config.erizo.maxport = '$MAX_PORT';" >> /opt/licode/licode_config.js
+
+
+    if [ "$ERIZOAGENT" = "true" ] || [ "$ERIZOCONTROLLER" = "true" ] || [ "$NUVE" = "true" ] ; then
+      if [ ! -z "$NUVE_ID" ] && [ ! -z "$NUVE_KEY" ]; then 
+          echo "config.nuve.superserviceID = '$NUVE_ID';" >> /opt/licode/licode_config.js
+          echo "config.nuve.superserviceKey= '$NUVE_KEY';" >> /opt/licode/licode_config.js
+      fi
+      if [ ! -z "$RABBIT_URL" ]; then 
+          echo "config.rabbit.url = '$RABBIT_URL';" >> /opt/licode/licode_config.js
+      fi
+    fi
+
+    #Erizo Controller Configuration
+    if [ ! -z "$ERIZO_CONTROLLER_IP" ]
+    then 
+      echo "config.erizoController.publicIP = '$ERIZO_CONTROLLER_IP';" >> /opt/licode/licode_config.js
+    fi
+    
+    if [ ! -z "$ERIZO_PORT" ]
+    then 
+      echo "config.erizoController.port = '$ERIZO_PORT';" >> /opt/licode/licode_config.js
+    fi
+    if [ ! -z "$ERIZO_SSL" ]
+    then 
+      echo "config.erizoController.ssl = '$ERIZO_SSL';" >> /opt/licode/licode_config.js
+    fi
+    if [ ! -z "$ERIZO_LISTEN_SSL" ]
+    then 
+      echo "config.erizoController.listen_ssl = '$ERIZO_LISTEN_SSL';" >> /opt/licode/licode_config.js
+    fi
+    if [ ! -z "$ERIZO_LISTEN_PORT" ]
+    then 
+      echo "config.erizoController.listen_port = '$ERIZO_LISTEN_PORT';" >> /opt/licode/licode_config.js
+    fi
+    if [ ! -z "$TURN_USERNAME" ] && [ ! -z "$TURN_CRED" ] && [ ! -z "$PUBLIC_IP" ] ; then
+      echo "config.erizoController.iceServers = [{\"url\":\"stun:'$PUBLIC_IP':3478\"}, {\"username\":\"'$TURN_USERNAME'\",\"url\":\"turn:'$PUBLIC_IP':3478\",\"credential\":\"'$TURN_CRED'\"}, {\"username\":\"'$TURN_USERNAME'\",\"url\":\"turn:'$PUBLIC_IP':5349\",\"credential\":\"'$TURN_CRED'\"}]" >> /opt/licode/licode_config.js
+    fi
 fi
 
 if [ "$NUVE" = "true" ]; then
@@ -182,41 +225,10 @@ if [ "$NUVE" = "true" ]; then
 fi
 
 if [ "$ERIZOCONTROLLER" = "true" ]; then
-  if [ ! -z "$ERIZO_CONTROLLER_IP" ]
-  then 
-    echo "config.erizoController.publicIP = '$ERIZO_CONTROLLER_IP';" >> /opt/licode/licode_config.js
-  fi
-
-  if [ ! -z "$ERIZO_PORT" ]
-  then 
-    echo "config.erizoController.port = '$ERIZO_PORT';" >> /opt/licode/licode_config.js
-  fi
-  if [ ! -z "$ERIZO_SSL" ]
-  then 
-    echo "config.erizoController.ssl = '$ERIZO_SSL';" >> /opt/licode/licode_config.js
-  fi
-  if [ ! -z "$ERIZO_LISTEN_SSL" ]
-  then 
-    echo "config.erizoController.listen_ssl = '$ERIZO_LISTEN_SSL';" >> /opt/licode/licode_config.js
-  fi
-  if [ ! -z "$ERIZO_LISTEN_PORT" ]
-  then 
-    echo "config.erizoController.listen_port = '$ERIZO_LISTEN_PORT';" >> /opt/licode/licode_config.js
-  fi
-  if [ ! -z "$TURN_USERNAME" ] && [ ! -z "$TURN_CRED" ] && [ ! -z "$PUBLIC_IP" ] ; then
-    echo "config.erizoController.iceServers = [{\"url\":\"stun:'$PUBLIC_IP':3478\"}, {\"username\":\"'$TURN_USERNAME'\",\"url\":\"turn:'$PUBLIC_IP':3478\",\"credential\":\"'$TURN_CRED'\"}, {\"username\":\"'$TURN_USERNAME'\",\"url\":\"turn:'$PUBLIC_IP':5349\",\"credential\":\"'$TURN_CRED'\"}]" >> /opt/licode/licode_config.js
-  fi
   run_erizoController
 fi
 
 if [ "$ERIZOAGENT" = "true" ]; then
-  if [ ! -z "$ERIZO_AGENT_IP"  ]
-  then
-    echo "config.erizoAgent.publicIP = '$ERIZO_AGENT_IP';" >> /opt/licode/licode_config.js
-  fi
-
-  echo "config.erizo.minport = '$MIN_PORT';" >> /opt/licode/licode_config.js
-  echo "config.erizo.maxport = '$MAX_PORT';" >> /opt/licode/licode_config.js
   run_erizoAgent
 fi
 
