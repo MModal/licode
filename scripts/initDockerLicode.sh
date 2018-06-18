@@ -70,10 +70,12 @@ create_superservice() {
     NUVE_ID=`grep "config.nuve.superserviceID" $ROOT/licode_config.js`
     NUVE_ID=`echo $NUVE_ID |  cut -d '=' -f 2`
     NUVE_ID=`echo $NUVE_ID | cut -d ';' -f 1`
+    NUVE_ID=`echo ${NUVE_ID//\'}`
 
     NUVE_KEY=`grep "config.nuve.superserviceKey" $ROOT/licode_config.js`
     NUVE_KEY=`echo $NUVE_KEY |  cut -d '=' -f 2`
     NUVE_KEY=`echo $NUVE_KEY | cut -d ';' -f 1`
+    NUVE_KEY=`echo ${NUVE_KEY//\'}`
   fi
 
   dbURL=`grep "config.nuve.dataBaseURL" $SCRIPTS/licode_default.js`
