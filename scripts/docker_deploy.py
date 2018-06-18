@@ -85,6 +85,14 @@ def restart_remote_syslog(credentials_dict, server):
     stderr = subprocess.STDOUT
     )
 
+def check_remote_tar(user, key, server, remote_file):
+    remote_file = image_tar_file
+    script = 'ssh {} {}@{} [[ -f {} ]] && printf 'True' || printf 'False';'.format(key, user, server, remote_file)
+    pipe = subprocess.Popen(script, shell=True, stdout = subprocess.PIPE)  
+    output = pipe.stdout.readline() == "True"
+    print(output)
+    return output
+
 def deploy_prod():
     config_file_original = json.load(open("deploy_config.json"))
     config_file = dict(config_file_original)
@@ -128,9 +136,13 @@ def deploy_prod():
              else:
                  save_image(repo, service, version, image_tar_file)
 
-             #SCP the docker image to the target 
-             print("Transferring the image {} over scp.".format(image_tar_file))
-             scp_image(user, public_key, image_tar_file, server, remote_location)
+             remote_file_exists = check_remote_tar(user, credentials["public_key"], server, remote_tar_location)
+             if remote_file_exists
+               #Transfer the docker image over scp
+               print("Image did not exist on remote, transferring the docker image to remote over scp...")
+               scp_image(user, credentials["public_key"], image_tar_file, server, remote_location)
+             else:
+               print("Image did exist on remote, wont transfer it.")
             
              #Log the name of the user that is trying to deploy
              log_message_script = "logger -t {0} User {1} will try to replace the version: \$EXISTING_VERSION of service: {2} with version: {3};".format("scribe-operations",user,service, version)
@@ -231,9 +243,14 @@ def main(service_path, tar_file):
     user = service_vars["user"] 
     credentials = {"user":user, "public_key": "-i " + key_location}
 
-    #Transfer the docker image over scp
-    print("Transferring the docker image to remote over scp...")
-    scp_image(user, credentials["public_key"], image_tar_file, server, remote_location)
+    
+    print("Checking if image exists on remote")
+    if check_remote_tar(user, credentials["public_key"], server, remote_image):
+      #Transfer the docker image over scp
+      print("Image did not exist, transferring the docker image to remote over scp...")
+      scp_image(user, credentials["public_key"], image_tar_file, server, remote_location)
+    else:
+      print("Image did exist, wont transfer it.")
 
     #Add syslog confs needed for the service
     print("Adding the necessary syslog conf rules")
@@ -255,7 +272,7 @@ def main(service_path, tar_file):
     #Delete the tar file that got transferred
     print("Deleting the tar file that got transferred")
     execute_ssh_command(credentials, server, "rm {}".format(remote_image))
-    
+     
     #For automatic deployments, delete all of the previous images.
     execute_ssh_command(credentials,server,"sudo docker image prune -f")
 

@@ -62,8 +62,11 @@ run_rabbitmq() {
 }
 
 create_superservice() {
+  NUVE_ID=""
+  NUVE_KEY=""
+
  if [ ! -z $CONFIG ]; then
-    echo [licode] Configuration file was passed.
+    echo [licode] Configuration file was passed: ${CONFIG}
     NUVE_ID=`grep "config.nuve.superserviceID" $ROOT/licode_config.js`
     NUVE_ID=`echo $NUVE_ID |  cut -d '=' -f 2`
     NUVE_ID=`echo $NUVE_ID | cut -d ';' -f 1`
@@ -106,7 +109,7 @@ create_superservice() {
       SERVID="$NUVE_ID"
       SERVKEY="$NUVE_KEY"
       {
-      mongo $dbURL --eval "db.services.insert({_id: ObjectId('$NUVE_ID'), name: 'superService', key: '$NUVE_KEY', rooms: []})"
+      mongo $dbURL --eval "db.services.insert({_id: ObjectId($NUVE_ID), name: 'superService', key: $NUVE_KEY, rooms: []})"
       } ||
       {
         echo [licode] ERROR: Unable to create nuve database in mongo. Check that mongo is running and accessible.
@@ -114,6 +117,7 @@ create_superservice() {
       }
     fi
   else
+    echo [licode] No Superservice ID or Key passed. Generating random ones.
     mongo $dbURL --eval "db.services.insert({name: 'superService', key: '$RANDOM', rooms: []})"
     SERVID=`mongo $dbURL --quiet --eval "db.services.findOne()._id"`
     SERVKEY=`mongo $dbURL --quiet --eval "db.services.findOne().key"`
@@ -134,10 +138,11 @@ create_superservice() {
 
 }
 run_nuve() {
+  echo "Starting Nuve"
+  
   create_superservice
   echo "config.nuve.cloudHandlerPolicy = 'round_robin_policy.js';" >> /opt/licode/licode_config.js
 
-  echo "Starting Nuve"
   cd $ROOT/nuve/nuveAPI
   node nuve.js &
   sleep 5
@@ -178,8 +183,10 @@ nvm use
 
 #Select config file.
 if [ ! -z "$CONFIG" ]; then
+    echo Configuration passed, will use: ${CONFIG}
     cp "$SCRIPTS"/"$CONFIG".js "$ROOT"/licode_config.js
 else
+    echo No configuration passed, will use default.
     cp "$SCRIPTS"/licode_default.js "$ROOT"/licode_config.js
 fi
 
@@ -189,9 +196,12 @@ then
   echo "config.erizoAgent.publicIP = '$ERIZO_AGENT_IP';" >> /opt/licode/licode_config.js
 fi
 
-echo "config.erizo.minport = '$MIN_PORT';" >> /opt/licode/licode_config.js
-echo "config.erizo.maxport = '$MAX_PORT';" >> /opt/licode/licode_config.js
-
+if [ ! -z "$MIN_PORT" ]; then
+  echo "config.erizo.minport = '$MIN_PORT';" >> /opt/licode/licode_config.js
+fi
+if [ ! -z "$MAX_PORT"]; then
+  echo "config.erizo.maxport = '$MAX_PORT';" >> /opt/licode/licode_config.js
+fi
 
 if [ "$ERIZOAGENT" = "true" ] || [ "$ERIZOCONTROLLER" = "true" ] || [ "$NUVE" = "true" ] ; then
   if [ ! -z "$NUVE_ID" ] && [ ! -z "$NUVE_KEY" ]; then 
