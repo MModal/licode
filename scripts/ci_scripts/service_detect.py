@@ -6,34 +6,23 @@ import docker_deploy
 import docker_cleanup
 import common_vars
 import re
-import sys
 
 
-def get_services_paths(vcs_type):
+def get_services_paths():
     # Get the root directory of this repository
-    get_vcs_root = "";
-    if (vcs_type == "hg"):
-        get_vcs_root = ["hg", "root"]
-    elif (vcs_type == "git"):
-        get_vcs_root = ["git", "rev-parse", "--show-toplevel"]
-
     pipe = subprocess.Popen(
-        get_vcs_root,
+        ["hg", "root"],
         stdout=subprocess.PIPE
     )
 
     repo_root = pipe.stdout.read().strip()
-    # Find all Dockerfiles in this repository. For all Dockerfile directories, check if config.json file exists
 
+    # Find all Dockerfiles in this repository. For all Dockerfile directories, check if config.json file exists
     services_search_script = """
-        find {0} -name Dockerfile | while read -r line ; do
-            echo $(dirname ${{line}}) | while read -r directory ; do
-                find ${{directory}} -name {1} | while read -r service ; do
-                    echo $(dirname ${{service}})
-                done
-            done
+        find {0} -maxdepth 2 -name Dockerfile | while read -r line ; do
+            echo $(dirname ${{line}}) 
         done
-    """.format(repo_root, "config.json")
+    """.format(repo_root)
 
     pipe = subprocess.Popen(
         services_search_script,
@@ -42,11 +31,8 @@ def get_services_paths(vcs_type):
     )
 
     service_name_text = pipe.stdout.read().strip()
-    if not service_name_text:
-        sys.stderr.write("ERROR, no services were detected\n")
-        exit()
-
     service_names_arr = service_name_text.split("\n")
+
     # Return all directories of services that have a Dockerfile and a config.json file.
     return service_names_arr
 
@@ -134,8 +120,7 @@ def get_branch_text():
 def main():
     parameters = get_parameters()
     action = parameters["action"]
-    vcs_type = common_vars.get_vcs_type()
-    branch = common_vars.get_branch(vcs_type)
+    branch = common_vars.get_hg_branch()
 
     if "default_tag" not in parameters.keys():
         default_tag = "default"
@@ -149,7 +134,7 @@ def main():
         execute_action_to_service(service_path, action, default_tag)
 
     else:
-        service_paths = get_services_in_branch_name(get_services_paths(vcs_type))
+        service_paths = get_services_in_branch_name(get_services_paths())
         print("The following services have been detected:\n\t{0}".format('\n\t'.join(service_paths)))
         try:
             for service_path in service_paths:

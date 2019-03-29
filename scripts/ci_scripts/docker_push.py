@@ -17,7 +17,7 @@ def get_parameters():
     parser.add_argument("path", help="Root directory where Dockerfile and vars.py configuration files are located.")
     args = parser.parse_args()
 
-    if not args.path:
+    if not (args.path):
         parser.error("Path to root directory of microservice required")
 
     parameters = {'path': args.path}
@@ -35,7 +35,7 @@ def docker_login(user, password, registry):
     )
 
 
-def main(service_path):
+def main(service_path, default_tag="default"):
     service_vars = common_vars.get_service_variables(service_path)
     artifactory_user = os.environ["ARTIFACTORY_USER"].strip()
     artifactory_password = os.environ["ARTIFACTORY_PASSWORD"].strip()
@@ -62,7 +62,7 @@ def main(service_path):
         stderr=subprocess.STDOUT,
         shell=True
     )
-    print("Publish successful for {0}.".format(service_name))
+    print("Publish succesfull for {0}.".format(service_name))
 
 
 if __name__ == "__main__":

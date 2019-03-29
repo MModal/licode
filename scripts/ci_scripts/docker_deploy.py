@@ -330,6 +330,8 @@ def docker_run(container, flags, repo, tag, commands=""):
 
 def add_syslog_rule(credentials_dict, server, service_name):
     # Write rsyslog rule for this service if it doesn't exist
+    syslog_filename = "10-scribe-docker-{0}.conf".format(service_name)
+    syslog_filepath_string = "/etc/rsyslog.d/{0}".format(syslog_filename)
     user = credentials_dict["user"]
     user_server = user + "@" + server
     public_key = credentials_dict["public_key"]
@@ -346,7 +348,7 @@ def add_syslog_rule(credentials_dict, server, service_name):
     print("Created new syslog rule for this service(if not there): {0}".format(service_name))
 
 
-def main(service_path):
+def main(service_path, default_tag="default"):
     service_vars = common_vars.get_service_variables(service_path)
 
     key_location = "~/scribe/Scribe-Dev.pem"

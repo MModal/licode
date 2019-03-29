@@ -1,0 +1,175 @@
+{
+  "dev_server": {
+    "user": "ubuntu",
+    "server": "dev.scribe.mmodal-npd.com",
+    "key_location": "~/scribe/Scribe-Dev.pem"
+  },
+  "credentials": {
+    "user": "ubuntu",
+    "ssh_key": "~/scribe/Scribe-Dev.pem"
+  },
+  "54.236.13.78": [
+    {
+      "service_name": "webserver",
+      "flags": "--restart=always --name=webserver -v /opt/scribe/cert:/opt/scribe/cert -e NODE_ENV=\"production\" --net=host",
+      "version": "2.2.0",
+      "commands": "",
+      "enable": "false"
+    }
+  ],
+  "35.174.18.106": [
+    {
+      "service_name": "uploadserver",
+      "flags": "--restart=always --name=uploadserver -v /opt/scribe/cert:/opt/scribe/uploadserver/cert -e NODE_ENV=\"production\" --net=host",
+      "version": "1.2.4",
+      "commands": "",
+      "enable": "false"
+    },
+    {
+      "service_name": "auditserver",
+      "flags": "--name=auditserver --restart=always -e NODE_ENV=production --network=host -v /opt/scribe/cert/:/opt/scribe/auditserver/cert",
+      "version": "1.0.2",
+      "commands": "",
+      "enable": "false"
+    }
+  ],
+  "10.5.1.29": [
+    {
+      "service_name": "licode",
+      "alias": "licode-nuve",
+      "flags": "--net=host --name=nuve -e CONFIG=licode_stable",
+      "version": "dockerize-licode",
+      "commands": "--nuve",
+      "enable": "false"
+    }
+  ],
+  "dev.scribe.mmodal-npd.com": [
+    {
+      "service_name": "auditclient",
+      "flags": "-e NODE_ENV=docker_dev -v /opt/scribe/auditclient/mongo:/opt/mongo",
+      "version": "scribe-251-login-audit",
+      "commands": "rob.stark M*Modal1710 csd --country usa",
+      "enable": "false"
+    },
+    {
+      "service_name": "licode",
+      "alias": "licode-erizoAgent",
+      "flags": "--net=host -e CONFIG=licode_dev --name=licode-full -e ERIZO_AGENT_IP=52.23.176.184 -e TURN_USERNAME=turnAdmin -e TURN_CRED=mmodal! -e PUBLIC_IP=52.23.176.184",
+      "version": "dockerize-licode",
+      "commands": "",
+      "enable": "false"
+    },
+    {
+      "service_name": "webserver",
+      "flags": "-e NODE_ENV=docker_dev --network=host -v /opt/licode/cert/:/opt/scribe/cert",
+      "version": "2.10.1",
+      "commands": "",
+      "enable": "false"
+    }
+  ],
+  "54.210.238.72": [
+    {
+      "service_name": "uploadserver",
+      "flags": "--restart=always --name=uploadserver -v /opt/scribe/cert:/opt/scribe/uploadserver/cert -e NODE_ENV=\"production\" --net=host",
+      "version": "1.2.4",
+      "commands": "",
+      "enable": "false"
+    }
+  ],
+  "10.5.1.28": [
+    {
+      "service_name": "licode",
+      "alias": "licode-erizoAgent",
+      "flags": "--net=host --name=erizoAgent -e CONFIG=licode_stable -e ERIZO_AGENT_IP=34.229.177.203 -e TURN_USERNAME=turnAdmin -e TURN_CRED=mmodal! -e PUBLIC_IP=34.229.177.203 ",
+      "version": "dockerize-licode",
+      "commands": "--erizoAgent",
+      "enable": "false"
+    },
+    {
+      "service_name": "licode",
+      "alias": "licode-erizoAgent",
+      "flags": "--net=host --name=erizoController -e CONFIG=licode_stable -e TURN_USERNAME=turnAdmin -e TURN_CRED=mmodal! -e PUBLIC_IP=34.229.177.203 ",
+      "version": "dockerize-licode",
+      "commands": "--erizoController",
+      "enable": "false"
+    },
+    {
+      "service_name": "webserver",
+      "flags": " --name=webserver -v /var/log/scribe/clientLogs:/var/log/scribe/clientLogs -v /opt/licode/cert:/opt/scribe/cert -e NODE_ENV=docker_test --net=host",
+      "version": "2.9.3",
+      "commands": "",
+      "enable": "false"
+    },
+    {
+      "service_name": "auditserver",
+      "flags": "-e NODE_ENV=docker_test --network=host -v /opt/licode/cert/:/opt/scribe/cert",
+      "version": "1.0.1",
+      "commands": "",
+      "enable": "false"
+    }
+  ],
+  "10.5.1.80": [
+    {
+      "service_name": "licode",
+      "alias": "licode-erizoAgent",
+      "flags": "--net=host --name=erizoAgent -e CONFIG=licode_stable -e ERIZO_AGENT_IP=34.229.90.144 -e TURN_USERNAME=turnAdmin -e TURN_CRED=mmodal! -e PUBLIC_IP=34.229.90.144",
+      "version": "dockerize-licode",
+      "commands": "--erizoAgent",
+      "enable": "false"
+    },
+    {
+      "service_name": "licode-2",
+      "alias": "licode-erizoController",
+      "flags": "--net=host --name=erizoController -e CONFIG=licode_stable -e TURN_USERNAME=turnAdmin -e TURN_CRED=mmodal! -e PUBLIC_IP=34.229.90.144",
+      "version": "dockerize-licode",
+      "commands": "--erizoController",
+      "enable": "false"
+    },
+    {
+      "service_name": "webserver",
+      "flags": "--name=webserver -v /var/log/scribe/clientLogs:/var/log/scribe/clientLogs -v /opt/licode/cert:/opt/scribe/cert -e NODE_ENV=docker_test --net=host",
+      "version": "2.9.3",
+      "commands": "",
+      "enable": "false"
+    },
+    {
+      "service_name": "auditserver",
+      "flags": "-e NODE_ENV=docker_test --network=host -v /opt/licode/cert/:/opt/scribe/cert",
+      "version": "1.0.1",
+      "commands": "",
+      "enable": "false"
+    }
+  ],
+  "10.5.1.146": [
+    {
+      "service_name": "uploadserver",
+      "flags": "--name=uploadserver -v /opt/licode/cert:/opt/scribe/uploadserver/cert -e NODE_ENV=docker_test --net=host",
+      "version": "scribe-238-deploy-microservices",
+      "commands": "",
+      "enable": "false"
+    },
+    {
+      "service_name": "auditclient",
+      "flags": "-e NODE_ENV=docker_dev -v /opt/scribe/auditclient/mongo:/opt/mongo",
+      "version": "scribe-251-login-audit",
+      "commands": "rob.stark M*Modal1710 csd --country usa",
+      "enable": "false"
+    }
+  ],
+  "10.5.1.193": [
+    {
+      "service_name": "uploadserver",
+      "flags": "--name=uploadserver -v /opt/licode/cert:/opt/scribe/uploadserver/cert -e NODE_ENV=docker_test --net=host",
+      "version": "scribe-238-deploy-microservices",
+      "commands": "",
+      "enable": "false"
+    },
+    {
+      "service_name": "auditclient",
+      "flags": "-e NODE_ENV=docker_dev -v /opt/scribe/auditclient/mongo:/opt/mongo",
+      "version": "scribe-251-login-audit",
+      "commands": "rob.stark M*Modal1710 csd --country usa",
+      "enable": "false"
+    }
+  ]
+}

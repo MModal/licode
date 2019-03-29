@@ -1,4 +1,4 @@
-import common_vars, subprocess, os, argparse
+import common_vars, subprocess, os
 
 
 def read_from_file(filename):
@@ -14,7 +14,7 @@ def read_from_file(filename):
         return None
 
 
-def remove_image_id_file(image_id_file):
+def remove_image_id_file(service_name, image_id_file):
     subprocess.check_output(
         "rm {}".format(image_id_file),
         stderr=subprocess.STDOUT,
@@ -22,7 +22,7 @@ def remove_image_id_file(image_id_file):
     )
 
 
-def remove_image(repo, image_id, unique_tag):
+def remove_image(service_name, repo, image_id, unique_tag):
     docker_cleanup_script = """
                 docker images {0} | grep {1} | while read -r line; do
                     tag=$(echo ${{line}} | awk '{{print $2}}')
@@ -59,34 +59,21 @@ def remove_tar_file(image_tar_file):
         print("No image tar file found")
 
 
-def get_parameters():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("service_path",
-                        help="Root directory where Dockerfile and vars.py configuration files are located.")
-    args = parser.parse_args()
-
-    if not args.service_path:
-        parser.error("Path to root directory of microservice required")
-
-    params = {'service_path': args.service_path}
-
-    return params
-
-
 def main(service_path):
     service_vars = common_vars.get_service_variables(service_path)
     repo = service_vars["repo"]
+    root = service_vars["root"]
     service_name = service_vars["service_name"]
     image_id_file = service_vars["image_id_file"]
     unique_tag = service_vars["unique_tag"]
     image_tar_file = service_vars["image_tar_file"]
     image_id = read_from_file(image_id_file)
 
-    if image_id:
+    if (image_id):
         print("Removing all other images for service {}".format(service_name))
-        remove_image(repo, image_id, unique_tag)
+        remove_image(service_name, repo, image_id, unique_tag)
         print("Removing ID image file.".format(service_name))
-        remove_image_id_file(image_id_file)
+        remove_image_id_file(service_name, image_id_file)
 
     print("Performing a docker prune")
     docker_prune()
@@ -95,9 +82,4 @@ def main(service_path):
 
     print("Cleanup successful for {0}.".format(service_name))
 
-
 # TODO: Implement cleanup as a standolone which would take a service to cleanup after.
-if __name__ == "__main__":
-    parameters = get_parameters()
-    service_path = parameters["path"]
-    main(service_path)
