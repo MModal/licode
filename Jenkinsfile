@@ -23,7 +23,8 @@ node('Scribe_Centos_01') {
         // distribution files for the project, as well as acting as a production image
         stage('Build') {
             checkout scm
-            sh 'cd scripts; python -u service_detect.py --default_tag default-CI build'
+            //sh 'cd scripts; python -u service_detect.py --default_tag default-CI build'
+            sh cd scripts; python -u service_detect.py --default_tag default-CI --dockerfile ./docker/agent/Dockerfile --servicename licode-agent --workingdir .. build'
             stash includes: '*.tar', name: 'dockerImage'
             stash includes: '*.id', name: 'dockerID'
         }

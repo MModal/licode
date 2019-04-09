@@ -1,5 +1,6 @@
 import argparse
 import os
+import sys
 import subprocess
 import common_vars
 
@@ -43,11 +44,10 @@ def get_parameters():
 
     return parameters
 
-def main(service_path, default_tag="default"):
-
-    service_vars = common_vars.get_service_variables(service_path, default_tag)
+#def main(service_path, default_tag="default"):
+def main(service_name, dockerfile, workingdir, default_tag="default"):
+    service_vars = common_vars.get_service_variables(service_name, default_tag)
     root = service_vars["root"]
-    service_name = service_path[service_path.rfind("/")+1:]
     branch = service_vars["branch"]
     registry = service_vars["registry"]
     repo = service_vars["repo"]
@@ -62,18 +62,17 @@ def main(service_path, default_tag="default"):
     #Build the docker build script
     dockerBuildScript = """
         docker build \\
-        -f {0}/Dockerfile \\
+        -f {0} \\
         -t {1}:latest-build \\
         -t {1}:{2} \\
-        {0}
-    """.format(service_path, repo, unique_tag).strip()
+        {3}
+    """.format(dockerfile, repo, unique_tag, workingdir).strip()
 
     #Execute the script to build the image
     print("Building the service image of {0} with script: \n{1}".format(service_name ,dockerBuildScript))
-    print subprocess.check_output(
-        dockerBuildScript,
-        shell=True)
-
+    proc = subprocess.Popen(dockerBuildScript,
+        shell=True, stdout=sys.stdout, stderr=sys.stderr)
+    proc.wait()
     print("Finished building the docker image.")
     
     #Fetch the docker image id
@@ -121,4 +120,4 @@ def main(service_path, default_tag="default"):
 
 if  __name__ == "__main__":
     parameters = get_parameters()
-    main(parameters["service_path"])
+    main(parameters["servicename"], parameters["dockerfile"], parameters["workingdir"])
