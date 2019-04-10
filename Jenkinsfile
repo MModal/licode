@@ -32,7 +32,8 @@ node('Scribe_Centos_01') {
         stage('Publish'){
             checkout scm
             unstash 'dockerID'
-            sh 'cd scripts; python -u service_detect.py --default_tag default-CI publish'
+            //sh 'cd scripts; python -u service_detect.py --default_tag default-CI publish'
+            sh 'cd scripts; python -u service_detect.py --default_tag default-CI --servicename licode-agent publish'
         }
   
         stage('Deploy'){

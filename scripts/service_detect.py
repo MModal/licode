@@ -93,8 +93,8 @@ def main():
             print("Building: {0}".format(service_name))
             docker_build.main(service_name, parameters["dockerfile"], parameters["workingdir"], default_tag)
         elif action == "publish":
-            print("Publishing: {0}".format(service_path))
-            docker_push.main(service_path)
+            print("Publishing: {0}".format(service_name))
+            docker_push.main(service_name)
         elif action == "deploy":
             image_tar_file = common_vars.get_service_variables(service_path)["image_tar_file"]
             print("Deploying: {0}, with tar_file in: {1}".format(service_path, image_tar_file))

@@ -32,8 +32,8 @@ def docker_login(user, password, registry):
     shell=True
     )
 
-def main(service_path):
-    service_vars = common_vars.get_service_variables(service_path)
+def main(service_name):
+    service_vars = common_vars.get_service_variables(service_name)
     artifactory_user = os.environ["ARTIFACTORY_USER"].strip()
     artifactory_password = os.environ["ARTIFACTORY_PASSWORD"].strip()
     registry = service_vars["registry"]
@@ -41,7 +41,6 @@ def main(service_path):
     docker_login(artifactory_user, artifactory_password, registry)
     
     repo = service_vars["repo"]
-    service_name = service_vars["service_name"]
     image_id_file = service_vars["image_id_file"]
     unique_tag = service_vars["unique_tag"]
     image_id = read_from_file(image_id_file)
@@ -64,5 +63,5 @@ def main(service_path):
 
 if __name__ == "__main__":
     parameters = get_parameters()
-    service_path = parameters["path"]
-    main(service_path)
+    service_name = parameters["servicename"]
+    main(service_name)
