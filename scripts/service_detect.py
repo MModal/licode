@@ -100,7 +100,7 @@ def main():
             print("Deploying: {0}, with tar_file in: {1}".format(service_path, image_tar_file))
             docker_deploy.main(service_path, image_tar_file)
         elif action == "cleanup":
-            docker_cleanup.main(service_path)
+            docker_cleanup.main(service_name)
         else:
             print("Action not recognized. Please type 'build', 'publish', 'deploy', or cleanup")
 #        for service_path in service_paths:
