@@ -19,7 +19,8 @@ setup_config() {
   echo "Setting up config"
   cd $SCRIPTS/config_update
   source env/bin/activate
-  python3 configs.py stable/scribe/licode/agent
+  #use the Secrets manager key name to get secrets
+  python3 configs.py "$@"
   deactivate
   cd $ROOT/scripts
 }

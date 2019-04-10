@@ -30,6 +30,7 @@ def get_secret(secret_name):
 
 if __name__ == '__main__':
     secret_name = sys.argv[0] 
+    print("Will read the secrets from {0}".format(secret_name))
     secrets = get_secret(secret_name)
     with open('../licode_default_custom.js', 'U') as input_file:
         config = input_file.read()
