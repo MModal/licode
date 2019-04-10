@@ -46,7 +46,7 @@ node('Scribe_Centos_01') {
     finally{
         stage('Cleanup'){
             unstash 'dockerID'
-            sh 'cd scripts; python -u service_detect.py cleanup'
+            sh 'cd scripts; python -u service_detect.py --servicename licode-agent cleanup'
         }
     }
 }
