@@ -143,11 +143,11 @@ def get_version(branch):
     return version, is_versioned
 
 
-def get_service_variables(service_path):
+def get_service_variables(dockerfile_path, service_name):
     vcs_type = get_vcs_type()
     config = "docker_dev"
     key_location = "~/scribe/Scribe-Dev.pem"
-    service_name = service_path[service_path.rfind("/") + 1:]
+    service_path = dockerfile_path.rsplit("/", 1)[0]
     registry = "artifactory-pit.mmodal-npd.com/mmodal"
     branch = get_branch(vcs_type).lower()
     version, is_versioned = get_version(branch)

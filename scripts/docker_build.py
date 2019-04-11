@@ -57,25 +57,24 @@ def get_parameters():
     return params
 
 
-def main(service_path):
-    service_vars = common_vars.get_service_variables(service_path)
-    service_name = service_path[service_path.rfind("/") + 1:]
+def main(dockerfile_path, service_name):
+    service_vars = common_vars.get_service_variables(dockerfile_path, service_name)
     repo = service_vars["repo"]
     version = service_vars["version"]
     is_versioned = service_vars["is_versioned"]
     image_tar_file = service_vars["image_tar_file"]
     unique_tag = service_vars["unique_tag"]
     build_args = service_vars["build_args"]
-
+    service_path = service_vars["service_path"]
     # Build the docker build script
     dockerBuildScript = """
         docker build \\
         --no-cache \\
-        -f {0}/Dockerfile \\
+        -f {0} \\
         -t {1}:latest-build \\
         -t {1}:{2} \\
-        {0} {3}
-    """.format(service_path, repo, unique_tag, build_args).strip()
+        {3} {4}
+    """.format(dockerfile_path, repo, unique_tag, service_path, build_args).strip()
 
     # Execute the script to build the image
     print("Building the service image of {0} with script: \n{1}".format(service_name, dockerBuildScript))

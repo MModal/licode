@@ -6,10 +6,11 @@ import docker_deploy
 import docker_cleanup
 import common_vars
 import re
-import sys
+import traceback
+import json
 
 
-def get_services_paths(vcs_type):
+def get_services(vcs_type, service_list_file):
     # Get the root directory of this repository
     get_vcs_root = "";
     if (vcs_type == "hg"):
@@ -25,30 +26,17 @@ def get_services_paths(vcs_type):
     repo_root = pipe.stdout.read().strip()
     # Find all Dockerfiles in this repository. For all Dockerfile directories, check if config.json file exists
 
-    services_search_script = """
-        find {0} -name Dockerfile | while read -r line ; do
-            echo $(dirname ${{line}}) | while read -r directory ; do
-                find ${{directory}} -name {1} | while read -r service ; do
-                    echo $(dirname ${{service}})
-                done
-            done
-        done
-    """.format(repo_root, "config.json")
-
-    pipe = subprocess.Popen(
-        services_search_script,
-        shell=True,
-        stdout=subprocess.PIPE
-    )
-
-    service_name_text = pipe.stdout.read().strip()
-    if not service_name_text:
-        sys.stderr.write("ERROR, no services were detected\n")
+    try:
+        service_list = json.load(open(service_list_file))
+    except Exception as e:
+        print("Could not find ".format(service_list_file))
         exit()
 
-    service_names_arr = service_name_text.split("\n")
-    # Return all directories of services that have a Dockerfile and a config.json file.
-    return service_names_arr
+    for service in service_list:
+        service["path"] = repo_root + service["path"]
+
+    # Return all directories of services that have a Dockerfile
+    return service_list
 
 
 def get_parameters():
@@ -82,56 +70,64 @@ def get_service_and_version_from_branch(branch_name):
         return service, version
 
 
-def get_single_service_path(service_name):
-    pipe = subprocess.Popen(
-        ["hg", "root"],
-        stdout=subprocess.PIPE
-    )
+def get_single_service_path(service_name, service_list):
+    for service in service_list:
+        if service["name"] == service_name:
+            return service
 
-    root = pipe.stdout.read().strip()
-    path = root + "/" + service_name
-
-    return path
+    print("Error: service from branch name not found!")
+    exit()
 
 
-def execute_action_to_service(service_path, action, default_tag):
+def execute_action_to_service(service_path, action, service_name, default_tag):
     if action == "build":
         print("Building: {0}".format(service_path))
-        docker_build.main(service_path)
+        docker_build.main(service_path, service_name)
     elif action == "publish":
         print("Publishing: {0}".format(service_path))
-        docker_push.main(service_path, default_tag)
+        docker_push.main(service_path, service_name)
     elif action == "deploy":
-        docker_deploy.main(service_path, default_tag)
+        docker_deploy.main(service_path, service_name)
     elif action == "cleanup":
         docker_cleanup.main(service_path)
     else:
         print("Action not recognized. Please type 'build', 'publish', 'deploy', or cleanup")
 
 
-def get_services_in_branch_name(service_paths):
-    filtered_paths = [];
-    for service_path in service_paths:
-        split_path = service_path.split("/")
-        service_name = split_path[-1]
-        if service_name in get_branch_text().lower():
-            filtered_paths.append(service_path)
-
+def get_services_in_branch_name(service_list, vcs_type):
+    filtered_paths = []
+    branch_text = get_branch_text(vcs_type).lower()
+    for service in service_list:
+        service_name = service["name"]
+        if service_name in branch_text:
+            filtered_paths.append(service_list)
     if not filtered_paths:
         print("Branch name had no services name. Building all.")
-        return service_paths
+        return service_list
     else:
         print("Branch name had service(s) names. Building those.")
         return filtered_paths
 
 
-def get_branch_text():
-    pipe = subprocess.Popen(["hg", "branch"], stdout=subprocess.PIPE)
-    branch_text = pipe.stdout.read()
+def get_branch_text(vcs_type):
+    if vcs_type == "git":
+        pipe = subprocess.Popen(["git", "rev-parse", "--abrev-ref", "HEAD"], stdout=subprocess.PIPE)
+        branch_text = pipe.stdout.read()
+    else:
+        pipe = subprocess.Popen(["hg", "branch"], stdout=subprocess.PIPE)
+        branch_text = pipe.stdout.read()
     return branch_text
 
 
+def filter_for_name(service_dict):
+    return_list = list()
+    for service in service_dict:
+        return_list.append(service["name"])
+    return return_list
+
+
 def main():
+    SERVICE_LIST_FILE = "service_list.json"
     parameters = get_parameters()
     action = parameters["action"]
     vcs_type = common_vars.get_vcs_type()
@@ -143,21 +139,26 @@ def main():
         default_tag = parameters["default_tag"]
     if "release" in branch:
         print("Release branch detected!")
-        service, version = get_service_and_version_from_branch(branch)
-        print("Will only do '{}' to service: '{}' with version: '{}'".format(action, service, version))
-        service_path = get_single_service_path(service)
-        execute_action_to_service(service_path, action, default_tag)
+        service_found, version = get_service_and_version_from_branch(branch)
+        print("Will only do '{}' to service: '{}' with version: '{}'".format(action, service_found, version))
+        services = get_services(vcs_type, SERVICE_LIST_FILE)
+        service = get_single_service_path(service_found, services)
+        execute_action_to_service(service["path"], action, service["name"], default_tag)
 
     else:
-        service_paths = get_services_in_branch_name(get_services_paths(vcs_type))
-        print("The following services have been detected:\n\t{0}".format('\n\t'.join(service_paths)))
+        services = get_services(vcs_type, SERVICE_LIST_FILE)
+        filtered_paths = get_services_in_branch_name(services, vcs_type)
+        filtered_names = filter_for_name(filtered_paths)
+        print("The following services have been detected:\n\t{0}".format('\n\t'.join(filtered_names)))
         try:
-            for service_path in service_paths:
-                execute_action_to_service(service_path, action, default_tag)
+            for service in filtered_paths:
+                execute_action_to_service(service["path"], action, service["name"], default_tag)
 
         except subprocess.CalledProcessError as e:
+            traceback.print_exc()
+            print "Subprocess Error:"
             print e.output
-            raise e
+            exit()
 
 
 if __name__ == "__main__":

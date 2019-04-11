@@ -21,3 +21,4 @@ extras/basic_example/public/assets/
 rtp_media_config.js
 *.log
 *.pyc
+.idea/
