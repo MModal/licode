@@ -73,10 +73,9 @@ def get_parameters():
     return params
 
 
-def main(service_path):
-    service_vars = common_vars.get_service_variables(service_path)
+def main(service_path, service_name):
+    service_vars = common_vars.get_service_variables(service_path, service_name)
     repo = service_vars["repo"]
-    service_name = service_vars["service_name"]
     image_id_file = service_vars["image_id_file"]
     unique_tag = service_vars["unique_tag"]
     image_tar_file = service_vars["image_tar_file"]
@@ -99,5 +98,5 @@ def main(service_path):
 # TODO: Implement cleanup as a standolone which would take a service to cleanup after.
 if __name__ == "__main__":
     parameters = get_parameters()
-    service_path = parameters["path"]
-    main(service_path)
+    service_path_main = parameters["path"]
+    main(service_path_main)

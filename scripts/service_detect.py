@@ -89,7 +89,7 @@ def execute_action_to_service(service_path, action, service_name, default_tag):
     elif action == "deploy":
         docker_deploy.main(service_path, service_name)
     elif action == "cleanup":
-        docker_cleanup.main(service_path)
+        docker_cleanup.main(service_path, service_name)
     else:
         print("Action not recognized. Please type 'build', 'publish', 'deploy', or cleanup")
 
