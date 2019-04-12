@@ -28,8 +28,8 @@ RUN apt-get install vim python3-pip python3-venv rabbitmq-server libx264. libvpx
 
 WORKDIR /opt/licode/scripts/config_update
 RUN ./install.sh
-WORKDIR /opt/licode/scripts
+WORKDIR /opt/licode
 
 USER nobody
 
-ENTRYPOINT ["./initDockerAgent.sh"]
+ENTRYPOINT ["./scripts/initDockerAgent.sh"]

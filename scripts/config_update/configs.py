@@ -38,7 +38,7 @@ if __name__ == '__main__':
         config = config.replace('_superservice_id_', secrets['superservice_id'])
         config = config.replace('_superservice_key_', secrets['superservice_key'])
         config = config.replace('_ice_servers_', secrets['ice_servers'])
-    with open('../licode_config.js', 'w') as output_file:
+    with open('../../licode_config.js', 'w') as output_file:
         output_file.write(config)
     
         
