@@ -29,7 +29,7 @@ def get_secret(secret_name):
             return json.loads(base64.b64decode(get_secret_value_response['SecretBinary']))
 
 if __name__ == '__main__':
-    secret_name = sys.argv[0] 
+    secret_name = sys.argv[1] 
     print("Will read the secrets from {0}".format(secret_name))
     secrets = get_secret(secret_name)
     with open('../licode_default_custom.js', 'U') as input_file:

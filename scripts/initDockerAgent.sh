@@ -34,3 +34,11 @@ nvm use
 
 run_erizoAgent
 wait
+
+
+while [ : ]
+do
+    echo "Will sleep"
+    sleep 100000
+done
+
