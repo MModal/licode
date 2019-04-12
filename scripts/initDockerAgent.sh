@@ -16,18 +16,18 @@ run_erizoAgent() {
 }
 
 setup_config() {
-  echo "Setting up config"
+  echo "Setting up config with " $1
   cd $SCRIPTS/config_update
   source env/bin/activate
   #use the Secrets manager key name to get secrets
-  python3 configs.py "$@"
+  python3 configs.py $1
   deactivate
   cd $ROOT/scripts
 }
 
 cd $ROOT/scripts
 
-setup_config
+setup_config $*
 
 run_nvm
 nvm use
