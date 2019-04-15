@@ -13,6 +13,6 @@ NVM_CHECK="$LICODE_ROOT"/scripts/checkNvm.sh
 echo [erizo_controller_agent] Installing node_modules for erizo_agent
 
 nvm use
-npm install --loglevel error amqp log4js@1.0.1 node-getopt
+npm install --loglevel error amqp aws-sdk log4js@1.0.1 node-getopt
 
 echo [erizo_controller_agent] Done, node_modules installed
