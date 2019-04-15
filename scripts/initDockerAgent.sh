@@ -25,6 +25,8 @@ setup_config() {
   cd $ROOT/scripts
 }
 
+ulimit -a
+
 cd $ROOT/scripts
 
 setup_config $*

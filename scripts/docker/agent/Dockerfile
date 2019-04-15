@@ -21,7 +21,7 @@ FROM ubuntu:16.04
 
 LABEL maintainer="MModal"
 
-COPY --from=builder --chown=nobody:nogroup /opt/licode /opt/licode
+COPY --from=builder /opt/licode /opt/licode
 
 RUN apt-get update
 RUN apt-get install vim python3-pip python3-venv rabbitmq-server libglib2.0-0 libboost-regex1.58.0 libboost-thread1.58.0 libboost-system1.58.0 liblog4cxx10v5 libx264. libvpx. -y
