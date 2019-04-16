@@ -15,7 +15,7 @@ run_erizoAgent() {
   node erizoAgent.js &
 }
 
-ulimit -a
+echo "Running as `id -u -n`"
 
 cd $ROOT/scripts
 
@@ -24,11 +24,3 @@ nvm use
 
 run_erizoAgent
 wait
-
-
-while [ : ]
-do
-    echo "Will sleep"
-    sleep 100000
-done
-
