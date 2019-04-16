@@ -218,7 +218,7 @@ int createCert(const std::string& pAor, int expireDays, int keyLen, X509*& outCe
 
     ELOG_DEBUG("Creating Dtls factory, Openssl v %s", OPENSSL_VERSION_TEXT);
 
-    mContext = SSL_CTX_new(DTLSv1_method());
+    mContext = SSL_CTX_new(DTLS_method());
     assert(mContext);
 
     int r = SSL_CTX_use_certificate(mContext, mCert);
