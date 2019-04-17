@@ -6,6 +6,7 @@ import docker_build
 import docker_push
 import docker_deploy
 import docker_cleanup
+import docker_run
 import sys
 
 #def get_services_paths(vcs_type):
@@ -76,7 +77,7 @@ def get_parameters():
 
 def main():
     parameters = get_parameters()
-    vcs_type = common_vars.get_vcs_type()
+#    vcs_type = common_vars.get_vcs_type()
     action = parameters["action"]
     service_name = parameters["servicename"]
    
@@ -101,8 +102,10 @@ def main():
             docker_deploy.main(service_path, image_tar_file)
         elif action == "cleanup":
             docker_cleanup.main(service_name)
+        elif action == "run":
+            docker_run.main(service_name)
         else:
-            print("Action not recognized. Please type 'build', 'publish', 'deploy', or cleanup")
+            print("Action not recognized. Please type 'build', 'publish', 'deploy', 'run', or cleanup")
 #        for service_path in service_paths:
 #            if action == "build":
 #                print("Building: {0}".format(service_path))

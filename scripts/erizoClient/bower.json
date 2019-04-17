@@ -1,0 +1,17 @@
+{
+  "name": "erizo",
+  "version": "__version__",
+  "ignore": [],
+  "authors": [
+    "The Licode Team"
+  ],
+  "description": "The Erizo client",
+  "main": "erizo.js",
+  "keywords": [
+    "Licode",
+    "Erizo"  
+  ],
+  "license": [
+    "MIT"
+  ]
+}
