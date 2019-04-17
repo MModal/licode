@@ -22,7 +22,7 @@ def main(service_name, default_tag="default"):
     version = service_vars["version"]
     container = service_vars["container"]
     
-    docker_run_script = """sudo docker run --rm \
+    docker_run_script = """docker run --rm \
     --log-opt tag=\"{0}/{{{{.ID}}}}\" \
     --name={0} \
     {1}:{2}""".format(container, repo, version).strip()
