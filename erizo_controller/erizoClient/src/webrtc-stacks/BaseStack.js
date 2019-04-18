@@ -60,15 +60,15 @@ const BaseStack = (specInput) => {
         candidate: 'end',
       };
     } else {
-      if (!candidate.candidate.match(/a=/)) {
-        candidate.candidate = `a=${candidate.candidate}`;
-      }
-
       candidateObject = {
         sdpMLineIndex: candidate.sdpMLineIndex,
         sdpMid: candidate.sdpMid,
         candidate: candidate.candidate,
       };
+        
+      if (!candidateObject.candidate.match(/a=/)) {
+        candidateObject.candidate = `a=${candidateObject.candidate}`;
+      }    
     }
 
     if (specBase.remoteDescriptionSet) {

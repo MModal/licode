@@ -49,8 +49,9 @@ VERSIONVAL=`cat version`
 echo "My version is $VERSIONVAL"
 sed -i -e 's/__version__/'"$VERSIONVAL"'/g' bower.json
 
-cp ../../erizo_controller/erizoClient/dist/debug/erizo/erizo.js .
+cp ../../erizo_controller/erizoClient/dist/debug/erizo/erizo.js ./erizo.js
+cp ../../erizo_controller/erizoClient/dist/production/erizo/erizo.js ./erizo.min.js
 
-tar -czvf erizo-$VERSIONVAL.tgz bower.json erizo.js
+tar -czvf erizo-$VERSIONVAL.tgz bower.json erizo.js erizo.min.js
 
 curl -XPUT https://artifactory-pit.mmodal-npd.com/artifactory/internal-bower-pit/ffs/erizo/ -T erizo-$VERSIONVAL.tgz

@@ -6,7 +6,7 @@
     "The Licode Team"
   ],
   "description": "The Erizo client",
-  "main": "erizo.js",
+  "main": "erizo.min.js",
   "keywords": [
     "Licode",
     "Erizo"  
