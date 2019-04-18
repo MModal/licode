@@ -65,10 +65,10 @@ const BaseStack = (specInput) => {
         sdpMid: candidate.sdpMid,
         candidate: candidate.candidate,
       };
-        
+
       if (!candidateObject.candidate.match(/a=/)) {
         candidateObject.candidate = `a=${candidateObject.candidate}`;
-      }    
+      }
     }
 
     if (specBase.remoteDescriptionSet) {
