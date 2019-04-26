@@ -38,6 +38,10 @@ if __name__ == '__main__':
         config = config.replace('_superservice_id_', secrets['superservice_id'])
         config = config.replace('_superservice_key_', secrets['superservice_key'])
         config = config.replace('_ice_servers_', secrets['ice_servers'])
+        if len(sys.argv) > 2:
+            config = config.replace('_cloud_ptovider_', sys.argv[2])
+        else:
+            config = config.replace('_cloud_ptovider_', '')
     with open('../../licode_config.js', 'w') as output_file:
         output_file.write(config)
     

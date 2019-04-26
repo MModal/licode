@@ -18,7 +18,7 @@ config.logger.configFile = '../log4js_configuration.json'; //default value: "../
  It's used by Nuve and ErizoController
 **********************************************************/
 config.cloudProvider = {};
-config.cloudProvider.name = 'amazon';
+config.cloudProvider.name = '_cloud_ptovider_';
 
 /*********************************************************
  NUVE CONFIGURATION
