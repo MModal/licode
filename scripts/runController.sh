@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
 ROOT=/opt/licode
-SCRIPTS="$ROOT"/scripts
-NVM_CHECK="$ROOT"/scripts/checkNvm.sh
+SCRIPTS=$ROOT/scripts
 
 run_nvm() {
   echo "Running NVM"
@@ -11,13 +10,13 @@ run_nvm() {
 
 run_erizoController() {
   echo "Starting erizoController"
-  cd $ROOT/erizoController
+  cd $ROOT/erizo_controller/erizoController
   node erizoController.js &
 }
 
 echo "Running as `id -u -n`"
 
-cd $ROOT/scripts
+cd $SCRIPTS
 
 run_nvm
 nvm use
