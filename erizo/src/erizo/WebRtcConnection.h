@@ -187,8 +187,10 @@ class WebRtcConnection: public MediaSink, public MediaSource, public FeedbackSin
   std::string getJSONCandidate(const std::string& mid, const std::string& sdp);
   // changes the outgoing payload type for in the given data packet
   void changeDeliverPayloadType(dataPacket *dp, packetType type);
+  void changeDeliverExtensionId(dataPacket *dp, packetType type);
   // parses incoming payload type, replaces occurence in buf
   void parseIncomingPayloadType(char *buf, int len, packetType type);
+  void parseIncomingExtensionId(char *buf, int len, packetType type);
   void trackTransportInfo();
 
  private:
