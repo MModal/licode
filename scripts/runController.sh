@@ -24,3 +24,10 @@ nvm use
 
 run_erizoController
 wait
+
+
+while [ : ]
+do
+    echo "Will sleep"
+    sleep 100000
+done
