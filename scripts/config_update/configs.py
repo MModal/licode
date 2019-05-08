@@ -3,6 +3,7 @@ import base64
 from botocore.exceptions import ClientError
 import json
 import sys
+import argparse
 
 
 def get_secret(secret_name):
@@ -28,18 +29,46 @@ def get_secret(secret_name):
         else:
             return json.loads(base64.b64decode(get_secret_value_response['SecretBinary']))
 
+def parse_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--secret", help="Secret name")
+    parser.add_argument("--cloud", help="Cloud provider")
+    parser.add_argument("--serialnum", type=int, help="Serial number of the service")
+    
+    args = parser.parse_args()
+    if args.secret is None:
+       parser.error("Secret is required")
+
+    return args
+
+
 if __name__ == '__main__':
-    secret_name = sys.argv[1] 
-    print("Will read the secrets from {0}".format(secret_name))
-    secrets = get_secret(secret_name)
+    args = parse_arguments()
+    print("Will read the secrets from {0}".format(args.secret))
+    secrets = get_secret(args.secret)
     with open('../licode_default_custom.js', 'U') as input_file:
         config = input_file.read()
         config = config.replace('_rabbit_url_', secrets['rabbit_url'])
         config = config.replace('_superservice_id_', secrets['superservice_id'])
         config = config.replace('_superservice_key_', secrets['superservice_key'])
-        config = config.replace('_ice_servers_', secrets['ice_servers'])
-        if len(sys.argv) > 2:
-            config = config.replace('_cloud_ptovider_', sys.argv[2])
+        if 'stun_servers' in secrets or 'turn_servers' in secrets:
+            ice_servers = []
+            if 'stun_servers' in secrets:
+                stun_servers = json.loads(secrets['stun_servers'])
+                if args.serialnum is not None and len(stun_servers) >= args.serialnum:
+                    ice_servers.append(stun_servers.pop(args.serialnum))
+                ice_servers.extend(stun_servers)
+            if 'turn_servers' in secrets:
+                turn_servers = json.loads(secrets['turn_servers'])
+                if args.serialnum is not None and len(turn_servers) >= args.serialnum:
+                    ice_servers.extend(turn_servers.pop(args.serialnum))
+                for turn_server in turn_servers:
+                    ice_servers.extend(turn_server)
+            config = config.replace('_ice_servers_', json.dumps(ice_servers))
+        else:
+            config = config.replace('_ice_servers_', secrets['ice_servers'])
+        if args.cloud is not None:
+            config = config.replace('_cloud_ptovider_', args.cloud)
         else:
             config = config.replace('_cloud_ptovider_', '')
     with open('../../licode_config.js', 'w') as output_file:
