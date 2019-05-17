@@ -7,7 +7,7 @@ setup_config() {
   cd $SCRIPTS/config_update
   source env/bin/activate
   #use the Secrets manager key name to get secrets
-  python3 configs.py $1
+  python3 configs.py $*
   deactivate
   cd $ROOT/scripts
 }
