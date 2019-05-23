@@ -63,7 +63,12 @@ if __name__ == '__main__':
                         ice_servers.append(stun_servers.pop(args.serialnum))
                     ice_servers.extend(stun_servers)
                 if 'turn_servers' in secrets:
-                    turn_servers = json.loads(secrets['turn_servers'])
+                    turn_servers_str = secrets['turn_servers']
+                    if 'coturn_user' in secrets:
+                        turn_servers_str = turn_servers_str.replace('_turn_user_', secrets['coturn_user'])
+                    if 'coturn_password' in secrets:
+                        turn_servers_str = turn_servers_str.replace('_turn_password_', secrets['coturn_password'])
+                    turn_servers = json.loads(turn_servers_str)
                     if args.serialnum is not None and len(turn_servers) >= args.serialnum:
                         ice_servers.extend(turn_servers.pop(args.serialnum))
                     for turn_server in turn_servers:
