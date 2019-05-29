@@ -7,7 +7,7 @@ setup_config() {
   cd $SCRIPTS/config_update
   source env/bin/activate
   #use the Secrets manager key name to get secrets
-  python3 configs.py $1 amazon
+  python3 configs.py $*
   deactivate
   cd $ROOT/scripts
 }
@@ -16,4 +16,4 @@ cd $ROOT/scripts
 
 setup_config $*
 
-su -c "$SCRIPTS/runAgent.sh" -s /bin/sh nobody
+su -c "$SCRIPTS/runController.sh" -s /bin/sh nobody
