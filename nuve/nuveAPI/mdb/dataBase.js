@@ -1,6 +1,7 @@
 /*global require, exports*/
 'use strict';
-var config = require('./../../../licode_config');
+var config = require('./../../../licode_config'),
+    fs = require('fs');
 
 config.nuve = config.nuve || {};
 config.nuve.dataBaseURL = config.nuve.dataBaseURL || 'localhost/nuvedb';
@@ -32,8 +33,13 @@ var databaseUrl = config.nuve.dataBaseURL;
  *
  */
 var collections = ['rooms', 'tokens', 'services', 'erizoControllers'];
+var ca = [fs.readFileSync("../../rds-combined-ca-bundle.pem")];
 var mongojs = require('mongojs');
-exports.db = mongojs(databaseUrl, collections);
+exports.db = mongojs(databaseUrl, collections, {
+    sslValidate: true,
+    sslCA:ca,
+    useNewUrlParser: true
+});
 
 // Superservice ID
 exports.superService = config.nuve.superserviceID;

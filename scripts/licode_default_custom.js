@@ -24,7 +24,7 @@ config.cloudProvider.name = '_cloud_ptovider_';
  NUVE CONFIGURATION
 **********************************************************/
 config.nuve = {};
-config.nuve.dataBaseURL = "localhost/nuvedb"; // default value: 'localhost/nuvedb'
+config.nuve.dataBaseURL = "_mongo_connection_"; // default value: 'localhost/nuvedb'
 config.nuve.superserviceID = '_superservice_id_'; // default value: ''
 config.nuve.superserviceKey = '_superservice_key_'; // default value: ''
 config.nuve.testErizoController = 'localhost:8080'; // default value: 'localhost:8080'

@@ -34,6 +34,7 @@ def parse_arguments():
     parser.add_argument("--secret", help="Secret name")
     parser.add_argument("--service", help="Type of service")
     parser.add_argument("--serialnum", type=int, help="Serial number of the service")
+    parser.add_argument("--database", help="Mongo secret name")
     
     args = parser.parse_args()
     if args.secret is None:
@@ -79,6 +80,11 @@ if __name__ == '__main__':
         elif args.service == 'agent':
             config = config.replace('_cloud_ptovider_', 'amazon')
             config = config.replace('_ice_servers_', '{}')
+        elif args.service == 'nuve':
+            config = config.replace('_cloud_ptovider_', '')
+            config = config.replace('_ice_servers_', '{}')
+            databaseSecret = get_secret(args.database)
+            config = config.replace('_mongo_connection_', '{}:{}@{}/nuvedb?ssl=true'.format(databaseSecret['username'], databaseSecret['password'], databaseSecret['host']))
     with open('../../licode_config.js', 'w') as output_file:
         output_file.write(config)
     

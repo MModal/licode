@@ -3,7 +3,7 @@ FROM ubuntu:16.04 as builder
 
 # Download latest version of the code and install dependencies
 RUN apt-get update
-RUN apt-get install -y curl git-all sudo
+RUN apt-get install -y curl git-all sudo wget
 
 COPY . /opt/licode
 
@@ -11,7 +11,7 @@ COPY . /opt/licode
 WORKDIR /opt/licode/scripts
 RUN ./installUbuntuDeps_Nuve.sh
 WORKDIR /opt/licode/nuve
-RUN ./installNuve_custom.sh
+RUN ./installNuve_custom.sh && wget https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem
 
 #Final Stage, leave unnecessary buildtime dependencies behind to minimize image size. 
 FROM ubuntu:16.04 
