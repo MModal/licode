@@ -84,7 +84,11 @@ if __name__ == '__main__':
             config = config.replace('_cloud_ptovider_', '')
             config = config.replace('_ice_servers_', '{}')
             databaseSecret = get_secret(args.database)
-            config = config.replace('_mongo_connection_', '{}:{}@{}/nuvedb?ssl=true'.format(databaseSecret['username'], databaseSecret['password'], databaseSecret['host']))
+            if 'username' in databaseSecret:
+                config = config.replace('_mongo_connection_', '{}:{}@{}/nuvedb'.format(databaseSecret['username'], databaseSecret['password'], databaseSecret['host']))
+            else:
+                config = config.replace('_mongo_connection_', '{}/nuvedb'.format(databaseSecret['host']))
+            config = config.replace('_database_ssl_', databaseSecret['ssl'])
     with open('../../licode_config.js', 'w') as output_file:
         output_file.write(config)
     

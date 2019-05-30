@@ -5,6 +5,7 @@ var config = require('./../../../licode_config'),
 
 config.nuve = config.nuve || {};
 config.nuve.dataBaseURL = config.nuve.dataBaseURL || 'localhost/nuvedb';
+config.nuve.databaseSSL = config.nuve.databaseSSL || false;
 config.nuve.superserviceID = config.nuve.superserviceID || '';
 config.nuve.superserviceKey = config.nuve.superserviceKey || '';
 config.nuve.testErizoController = config.nuve.testErizoController || 'localhost:8080';
@@ -33,13 +34,18 @@ var databaseUrl = config.nuve.dataBaseURL;
  *
  */
 var collections = ['rooms', 'tokens', 'services', 'erizoControllers'];
-var ca = [fs.readFileSync("../../rds-combined-ca-bundle.pem")];
 var mongojs = require('mongojs');
-exports.db = mongojs(databaseUrl, collections, {
-    sslValidate: true,
-    sslCA:ca,
-    useNewUrlParser: true
-});
+if(config.nuve.databaseSSL) {
+    var ca = [fs.readFileSync("../../rds-combined-ca-bundle.pem")];
+    exports.db = mongojs(databaseUrl, collections, {
+        ssl: true,
+        sslValidate: true,
+        sslCA:ca,
+        useNewUrlParser: true
+    });
+} else {
+    exports.db = mongojs(databaseUrl, collections);
+}
 
 // Superservice ID
 exports.superService = config.nuve.superserviceID;
