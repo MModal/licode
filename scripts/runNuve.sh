@@ -23,3 +23,10 @@ nvm use
 
 run_nuve
 wait
+
+while [ : ]
+do
+    echo "Will sleep"
+    sleep 100000
+done
+
