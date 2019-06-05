@@ -35,8 +35,8 @@ var databaseUrl = config.nuve.dataBaseURL;
  */
 var collections = ['rooms', 'tokens', 'services', 'erizoControllers'];
 var mongojs = require('mongojs');
-if(config.nuve.databaseSSL) {
-    var ca = [fs.readFileSync("../../rds-combined-ca-bundle.pem")];
+if(config.nuve.databaseSSLCertFile && config.nuve.databaseSSLCertFile.length > 0) {
+    var ca = [fs.readFileSync(config.nuve.databaseSSLCertFile)];
     exports.db = mongojs(databaseUrl, collections, {
         ssl: true,
         sslValidate: true,
