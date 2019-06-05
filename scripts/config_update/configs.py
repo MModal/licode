@@ -89,7 +89,7 @@ if __name__ == '__main__':
             else:
                 config = config.replace('_mongo_connection_', '{}/nuvedb'.format(databaseSecret['host']))
             if databaseSecret['ssl'] == 'true':
-                config = config.replace('_database_ssl_cert_', '../../rds-combined-ca-bundle.pem')
+                config = config.replace('_database_ssl_cert_', './../rds-combined-ca-bundle.pem')
             else:
                 config = config.replace('_database_ssl_cert_', '')
     with open('../../licode_config.js', 'w') as output_file:

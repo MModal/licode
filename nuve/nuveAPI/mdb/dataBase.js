@@ -36,6 +36,7 @@ var databaseUrl = config.nuve.dataBaseURL;
 var collections = ['rooms', 'tokens', 'services', 'erizoControllers'];
 var mongojs = require('mongojs');
 if(config.nuve.databaseSSLCertFile && config.nuve.databaseSSLCertFile.length > 0) {
+    console.log("Current dir is", process.cwd());
     var ca = [fs.readFileSync(config.nuve.databaseSSLCertFile)];
     exports.db = mongojs(databaseUrl, collections, {
         ssl: true,
