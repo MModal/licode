@@ -50,24 +50,27 @@ exports.addRoom = function (room, callback) {
 
 exports.assignErizoControllerToRoom = function(room, erizoControllerId, callback) {
   return db.eval(function(id, erizoControllerId) {
+      console.log("Starting the process of EC assign to room", id, erizoControllerId);
     var erizoController;
     var room = db.rooms.findOne({_id: new ObjectId(id)});
+      console.log("Found room with id", room);
     if (!room) {
       return erizoController;
     }
 
     if (room.erizoControllerId) {
       erizoController = db.erizoControllers.findOne({_id: room.erizoControllerId});
+        console.log("Found EC for room in db", erizoController);
       if (erizoController) {
         return erizoController;
       }
     }
 
     erizoController = db.erizoControllers.findOne({_id: new ObjectId(erizoControllerId)});
-
+      console.log("Located EC in db", erizoController);
     if (erizoController) {
       room.erizoControllerId = new ObjectId(erizoControllerId);
-
+        console.log("Will save room", room);
       db.rooms.save( room );
     }
     return erizoController;

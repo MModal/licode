@@ -190,9 +190,12 @@ var getErizoControllerForRoom = exports.getErizoControllerForRoom = function (ro
     var roomId = room._id;
 
     roomRegistry.getRoom(roomId, function (room) {
+        console.log("Found room", room);
         var id = room.erizoControllerId;
         if (id) {
+            console.log("Has EC id");
             erizoControllerRegistry.getErizoController(id, function (erizoController) {
+                console.log('Found EC for the room', erizoController);
                 if (erizoController) {
                     callback(erizoController);
                 } else {
@@ -208,17 +211,20 @@ var getErizoControllerForRoom = exports.getErizoControllerForRoom = function (ro
         var intervalId;
 
         getEcQueue(function(ecQueue) {
+            console.log("Got EC Queue", ecQueue);
             intervalId = setInterval(function () {
                 var erizoController;
                 if (getErizoController) {
                     erizoController = getErizoController(room, ecQueue);
+                    console.log("Got EC from the cloud handler", erizoController);
                 } else {
                     erizoController = ecQueue[0];
+                    console.log("Got first EC from queue", erizoController);
                 }
                 var id = erizoController ? erizoController._id : undefined;
 
                 if (id !== undefined) {
-
+                    console.log("Will try to assign EC to room");
                     assignErizoController(id, room, function (erizoController) {
                         callback(erizoController);
                         clearInterval(intervalId);
