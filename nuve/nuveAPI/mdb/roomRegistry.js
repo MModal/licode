@@ -7,6 +7,18 @@ var logger = require('./../logger').logger;
 // Logger
 var log = logger.getLogger('RoomRegistry');
 
+var makePromise = function(fn, params) {
+    return new Promise(function(resolve, reject) {
+       fn(params, function(err, value) {
+           if(err) {
+               reject(err);
+            } else {
+                resolve(value);
+            }
+        }); 
+    });
+};
+
 exports.getRooms = function (callback) {
     db.rooms.find({}).toArray(function (err, rooms) {
         if (err || !rooms) {
@@ -49,37 +61,53 @@ exports.addRoom = function (room, callback) {
 };
 
 exports.assignErizoControllerToRoom = function(room, erizoControllerId, callback) {
-  return db.eval(function(id, erizoControllerId) {
-      console.log("Starting the process of EC assign to room", id, erizoControllerId);
-    var erizoController;
-    var room = db.rooms.findOne({_id: new ObjectId(id)});
-      console.log("Found room with id", room);
-    if (!room) {
-      return erizoController;
-    }
-
-    if (room.erizoControllerId) {
-      erizoController = db.erizoControllers.findOne({_id: room.erizoControllerId});
-        console.log("Found EC for room in db", erizoController);
-      if (erizoController) {
-        return erizoController;
-      }
-    }
-
-    erizoController = db.erizoControllers.findOne({_id: new ObjectId(erizoControllerId)});
-      console.log("Located EC in db", erizoController);
-    if (erizoController) {
-      room.erizoControllerId = new ObjectId(erizoControllerId);
-        console.log("Will save room", room);
-      db.rooms.save( room );
-    }
-    return erizoController;
-  }, room._id + '', erizoControllerId + '', function(error, erizoController) {
-    if (error) log.warn('message: assignErizoControllerToRoom error, ' + logger.objectToLog(error));
-    if (callback) {
-      callback(erizoController);
-    }
-  });
+    const _roomId = room._id + '';
+    const _erizoContollerId = erizoControllerId + '';
+    console.log("Starting the process of EC assign to room", _roomId, _erizoContollerId);
+    var foundRoom;
+    
+    makePromise(db.rooms.findOne, {_id: new db.ObjectId(_roomId)}).then(function(room) {
+        console.log("Found room with id", room);
+        foundRoom = room;
+        if(room && room.erizoControllerId) {
+            return makePromise(db.erizoControllers.findOne, {_id: room.erizoControllerId});
+        } else {
+            return Promise.resolve();
+        }
+    })then(function(erizoController) {
+        if(foundRoom) {
+            console.log("Found EC for room in db", erizoController);
+            if(erizoController) {
+                if(callback) {
+                    callback(erizoController);
+                }
+            } else {
+                return makePromise(db.erizoControllers.findOne, {_id: new db.ObjectId(_erizoControllerId)});
+            }
+        } 
+        return Promise.resolve();
+    }).then(function(erizoController) {
+        console.log("Located EC in db", erizoController);
+        if(foundRoom && erizoController) {
+            console.log("Will save room", foundRoom);
+            foundRoom.erizoControllerId = new db.ObjectId(_erizoControllerId);
+            makePromise(db.rooms.save, foundRoom).then(function() {
+                if(callback) {
+                    callback(erizoController);   
+                }
+            }).catch(function(error) {
+                log.warn('message: assignErizoControllerToRoom save room error, ' + logger.objectToLog(error));
+                if(callback) {
+                    callback();
+                }
+            });
+        }
+    }).catch(function(error) {
+        log.warn('message: assignErizoControllerToRoom room error, ' + logger.objectToLog(error));
+        if(callback) {
+            callback();
+        }
+    });
 };
 
 /*

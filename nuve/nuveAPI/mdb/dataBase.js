@@ -41,8 +41,7 @@ if(config.nuve.databaseSSLCertFile && config.nuve.databaseSSLCertFile.length > 0
     exports.db = mongojs(databaseUrl, collections, {
         ssl: true,
         sslValidate: true,
-        sslCA:ca,
-        useNewUrlParser: true
+        sslCA:ca
     });
 } else {
     exports.db = mongojs(databaseUrl, collections);
