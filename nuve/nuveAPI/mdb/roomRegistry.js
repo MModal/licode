@@ -74,7 +74,7 @@ exports.assignErizoControllerToRoom = function(room, erizoControllerId, callback
         } else {
             return Promise.resolve();
         }
-    })then(function(erizoController) {
+    }).then(function(erizoController) {
         if(foundRoom) {
             console.log("Found EC for room in db", erizoController);
             if(erizoController) {
