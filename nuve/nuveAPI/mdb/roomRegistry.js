@@ -96,6 +96,7 @@ exports.assignErizoControllerToRoom = function(room, erizoControllerId, callback
                     callback(erizoController);   
                 }
             }).catch(function(error) {
+                console.error('assignErizoControllerToRoom save room error', error);
                 log.warn('message: assignErizoControllerToRoom save room error, ' + logger.objectToLog(error));
                 if(callback) {
                     callback();
@@ -103,6 +104,7 @@ exports.assignErizoControllerToRoom = function(room, erizoControllerId, callback
             });
         }
     }).catch(function(error) {
+        console.error('assignErizoControllerToRoom room error', error);
         log.warn('message: assignErizoControllerToRoom room error, ' + logger.objectToLog(error));
         if(callback) {
             callback();

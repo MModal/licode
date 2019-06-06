@@ -15,7 +15,7 @@
   	"NuveAuthenticator": "ERROR",
     "CloudHandler": "INFO",
     "DataBase": "ERROR",
-    "RoomRegistry": "ERROR",
+    "RoomRegistry": "WARN",
     "ServiceRegistry": "ERROR",
     "TokenRegistry": "ERROR",
     "RoomResource": "ERROR",
