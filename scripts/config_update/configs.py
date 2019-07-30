@@ -86,7 +86,7 @@ if __name__ == '__main__':
         elif args.service == 'nuve':
             config = config.replace('_cloud_ptovider_', '')
             config = config.replace('_ice_servers_', '{}')
-            databaseSecret = get_secret(args.database)
+            databaseSecret = get_secret(args.database, args.region)
             if 'username' in databaseSecret:
                 config = config.replace('_mongo_connection_', '{}:{}@{}/nuvedb'.format(databaseSecret['username'], databaseSecret['password'], databaseSecret['host']))
             else:
