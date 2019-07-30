@@ -6,9 +6,9 @@ import sys
 import argparse
 
 
-def get_secret(secret_name):
+def get_secret(secret_name, region_name):
 
-    region_name = "us-east-1"
+#    region_name = "us-east-1"
 
     # Create a Secrets Manager client
     session = boto3.session.Session()
@@ -32,23 +32,26 @@ def get_secret(secret_name):
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("--secret", help="Secret name")
+    parser.add_argument("--region", help="AWS resion name")
     parser.add_argument("--service", help="Type of service")
     parser.add_argument("--serialnum", type=int, help="Serial number of the service")
     parser.add_argument("--database", help="Mongo secret name")
     
     args = parser.parse_args()
     if args.secret is None:
-       parser.error("Secret is required")
+        parser.error("Secret is required")
     if args.service is None:
-       parser.error("Service is required")
+        parser.error("Service is required")
+    if args.region is None:
+        parser.error("Region is required")
 
     return args
 
 
 if __name__ == '__main__':
     args = parse_arguments()
-    print("Will read the secrets from {0}".format(args.secret))
-    secrets = get_secret(args.secret)
+    print("Will read the secrets from {0} in {1}".format(args.secret, args.region))
+    secrets = get_secret(args.secret, args.region)
     with open('../licode_default_custom.js', 'U') as input_file:
         config = input_file.read()
         config = config.replace('_rabbit_url_', secrets['rabbit_url'])
