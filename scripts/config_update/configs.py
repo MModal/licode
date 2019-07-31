@@ -83,9 +83,9 @@ if __name__ == '__main__':
             else:
                 config = config.replace('_ice_servers_', secrets['ice_servers'])
             if args.usePublicIP:
-                public_ip = requests.get("http://169.254.169.254/latest/meta-data/public-ipv4")
-                print("Will use {0} as the public IP".format(public_ip))
-                config = config.replace('_controller_public_ip_', public_ip)
+                public_ip_resp = requests.get("http://169.254.169.254/latest/meta-data/public-ipv4")
+                print("Will use {0} as the public IP".format(public_ip_resp.text))
+                config = config.replace('_controller_public_ip_', public_ip_resp.text)
             else:
                 config = config.replace('_controller_public_ip_', '')
         elif args.service == 'agent':
