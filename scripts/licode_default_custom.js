@@ -31,6 +31,7 @@ config.nuve.superserviceKey = '_superservice_key_'; // default value: ''
 config.nuve.testErizoController = 'localhost:8080'; // default value: 'localhost:8080'
 // Nuve Cloud Handler policies are in nuve/nuveAPI/ch_policies/ folder
 config.nuve.cloudHandlerPolicy = 'round_robin_policy.js'; // default value: 'default_policy.js'
+config.nuve.ssl = _nuve_ssl_;
 
 
 /*********************************************************

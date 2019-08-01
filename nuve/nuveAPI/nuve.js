@@ -4,6 +4,12 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var rpc = require('./rpc/rpc');
 var app = express();
+var config = require('./../../licode_config');
+var fs = require('fs');
+var https = require('https');
+
+config.nuve = config.nuve || {};
+config.nuve.ssl = config.nuve.ssl || false;
 
 rpc.connect();
 
@@ -75,4 +81,12 @@ app.use(function(req, res){
     res.status(404).send('Resource not found');
 });
 
-app.listen(3000);
+if(config.nuve.ssl) {
+    var httpOptions = {
+        key: fs.readFileSync('./../../cert/key.pem').toString(),
+        cert: fs.readFileSync('./../../cert/cert.pem').toString()
+    };
+    https.createServer(httpOptions, app).listen(3000, '0.0.0.0');
+} else {
+    app.listen(3000);
+}
