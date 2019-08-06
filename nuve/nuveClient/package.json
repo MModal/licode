@@ -1,0 +1,23 @@
+{
+  "name": "@mmodal/nuve",
+  "version": "1.0.0",
+  "description": "Licode Nuve",
+  "main": "nuve.js",
+  "author": "The Licode team",
+  "artifactRepo": {
+    "root": "https://artifactory-pit.mmodal-npd.com/artifactory/",
+    "path": "com/mmodal/nuve"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "files": [
+    "nuve.js"
+  ],
+  "publishConfig": {
+    "registry": "https://artifactory-pit.mmodal-npd.com/artifactory/api/npm/internal-npm-pit"
+  },
+  "devDependencies": {
+    "google-closure-compiler-js": "^20171203.0.0"
+  }
+}

@@ -238,6 +238,10 @@ var XMLHttpRequest = function() { // jshint ignore:line
     if(!settings.hasOwnProperty('async') || settings.async) {
       // Use the proper protocol
       var doRequest = ssl ? https.request : http.request;
+        
+      if(ssl) {
+          options.rejectUnauthorized = false;
+      }
 
       // Request is being sent, set send flag
       sendFlag = true;
