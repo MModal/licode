@@ -13,6 +13,7 @@ const BaseStack = (specInput) => {
 
   that.pcConfig = {
     iceServers: [],
+    sdpSemantics: 'plan-b',
   };
 
   that.con = {};
