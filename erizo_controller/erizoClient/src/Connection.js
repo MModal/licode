@@ -103,6 +103,7 @@ const GetUserMedia = (config, callback = () => {}, error = () => {}) => {
           screenConfig.video.mandatory = screenConfig.video.mandatory || {};
           screenConfig.video.mandatory.chromeMediaSource = 'desktop';
           screenConfig.video.mandatory.chromeMediaSourceId = config.desktopStreamId;
+          Logger.info(`Starting screen capture using the source ID passed by the native client. Using ${screenConfig}`);
           getUserMedia(screenConfig, callback, error);
         } else {
           // Default extensionId - this extension is only usable in our server,
@@ -132,6 +133,7 @@ const GetUserMedia = (config, callback = () => {}, error = () => {}) => {
                   screenConfig = { video: { mandatory: { chromeMediaSource: 'desktop',
                     chromeMediaSourceId: theId } } };
                 }
+                Logger.info(`Starting screen capture using the source ID provided by the extension. Using ${screenConfig}`);
                 getUserMedia(screenConfig, callback, error);
               });
           } catch (e) {
