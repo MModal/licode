@@ -100,14 +100,15 @@ const GetUserMedia = (config, callback = () => {}, error = () => {}) => {
         screenConfig = {};
         if (config.desktopStreamId) {
           screenConfig.video = {
-              mandatory: {
-                  maxWidth: config.video && config.video.width ? config.video.width.max : 1024,
-                  maxHeight: config.video && config.video.height ? config.video.height.max : 768,
-                  minFrameRate: config.video && config.video.frameRate ? config.video.frameRate.min : 1,
-                  maxFrameRate: config.video && config.video.frameRate ? config.video.frameRate.max : 30,
-                  chromeMediaSource: 'desktop',
-                  chromeMediaSourceId: config.desktopStreamId
-              }
+            mandatory: {
+              maxWidth: config.video && config.video.width ? config.video.width.max : 1024,
+              maxHeight: config.video && config.video.height ? config.video.height.max : 768,
+              minFrameRate: config.video && config.video.frameRate ? config.video.frameRate.min : 1,
+              maxFrameRate: config.video && config.video.frameRate ?
+                config.video.frameRate.max : 30,
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: config.desktopStreamId,
+            },
           };
           Logger.info(`Starting screen capture using the source ID passed by the native client. Using ${JSON.stringify(screenConfig)}`);
           getUserMedia(screenConfig, callback, error);
@@ -132,14 +133,16 @@ const GetUserMedia = (config, callback = () => {}, error = () => {}) => {
                 }
                 const theId = response.streamId;
                 screenConfig.video = {
-                    mandatory: {
-                        maxWidth: config.video && config.video.width ? config.video.width.max : 1024,
-                        maxHeight: config.video && config.video.height ? config.video.height.max : 768,
-                        minFrameRate: config.video && config.video.frameRate ? config.video.frameRate.min : 1,
-                        maxFrameRate: config.video && config.video.frameRate ? config.video.frameRate.max : 30,
-                        chromeMediaSource: 'desktop',
-                        chromeMediaSourceId: theId
-                    }
+                  mandatory: {
+                    maxWidth: config.video && config.video.width ? config.video.width.max : 1024,
+                    maxHeight: config.video && config.video.height ? config.video.height.max : 768,
+                    minFrameRate: config.video && config.video.frameRate ?
+                      config.video.frameRate.min : 1,
+                    maxFrameRate: config.video && config.video.frameRate ?
+                      config.video.frameRate.max : 30,
+                    chromeMediaSource: 'desktop',
+                    chromeMediaSourceId: theId,
+                  },
                 };
                 Logger.info(`Starting screen capture using the source ID provided by the extension. Using ${JSON.stringify(screenConfig)}`);
                 getUserMedia(screenConfig, callback, error);

@@ -49,9 +49,17 @@ VERSIONVAL=`cat version`
 echo "My version is $VERSIONVAL"
 sed -i -e 's/__version__/'"$VERSIONVAL"'/g' bower.json
 
-cp ../../erizo_controller/erizoClient/dist/debug/erizo/erizo.js ./erizo.js
-cp ../../erizo_controller/erizoClient/dist/production/erizo/erizo.js ./erizo.min.js
+ERIZO_CLIENT_DEBUG_OUTPUT_PATH=../../erizo_controller/erizoClient/dist/debug/erizo/erizo.js
+ERIZO_CLIENT_MINIFIED_OUTPUT_PATH=../../erizo_controller/erizoClient/dist/production/erizo/erizo.js
 
-tar -czvf erizo-$VERSIONVAL.tgz bower.json erizo.js erizo.min.js
+if [ -f "$ERIZO_CLIENT_DEBUG_OUTPUT_PATH" && -f "$ERIZO_CLIENT_MINIFIED_OUTPUT_PATH" ]; then
+    cp $ERIZO_CLIENT_DEBUG_OUTPUT_PATH ./erizo.js
+    cp $ERIZO_CLIENT_MINIFIED_OUTPUT_PATH ./erizo.min.js
 
-curl -XPUT https://artifactory-pit.mmodal-npd.com/artifactory/internal-bower-pit/ffs/erizo/ -T erizo-$VERSIONVAL.tgz
+    tar -czvf erizo-$VERSIONVAL.tgz bower.json erizo.js erizo.min.js
+
+    curl -XPUT https://artifactory-pit.mmodal-npd.com/artifactory/internal-bower-pit/ffs/erizo/ -T erizo-$VERSIONVAL.tgz
+else
+    echo "Don't see the output files, something went wrong"
+    exit 1
+fi
