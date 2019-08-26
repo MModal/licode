@@ -52,7 +52,7 @@ sed -i -e 's/__version__/'"$VERSIONVAL"'/g' bower.json
 ERIZO_CLIENT_DEBUG_OUTPUT_PATH=../../erizo_controller/erizoClient/dist/debug/erizo/erizo.js
 ERIZO_CLIENT_MINIFIED_OUTPUT_PATH=../../erizo_controller/erizoClient/dist/production/erizo/erizo.js
 
-if [ -f "$ERIZO_CLIENT_DEBUG_OUTPUT_PATH" && -f "$ERIZO_CLIENT_MINIFIED_OUTPUT_PATH" ]; then
+if [ -f $ERIZO_CLIENT_DEBUG_OUTPUT_PATH -a -f $ERIZO_CLIENT_MINIFIED_OUTPUT_PATH ]; then
     cp $ERIZO_CLIENT_DEBUG_OUTPUT_PATH ./erizo.js
     cp $ERIZO_CLIENT_MINIFIED_OUTPUT_PATH ./erizo.min.js
 
