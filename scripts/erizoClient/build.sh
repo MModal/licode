@@ -41,7 +41,7 @@ echo "I am in `pwd`"
 
 npm install gulp@3.9.1 run-sequence@2.2.0 del@3.0.0 gulp-sourcemaps@2.6.3 gulp-eslint@3.0.1 google-closure-compiler-js@20171203.0.0 webpack@3.10.0 webpack-stream@4.0.0 script-loader@0.7.2 expose-loader@0.7.4
 
-gulp erizo
+gulp erizo erizonoadapter
 
 cd $SCRIPT/erizoClient
 
@@ -51,12 +51,16 @@ sed -i -e 's/__version__/'"$VERSIONVAL"'/g' bower.json
 
 ERIZO_CLIENT_DEBUG_OUTPUT_PATH=../../erizo_controller/erizoClient/dist/debug/erizo/erizo.js
 ERIZO_CLIENT_MINIFIED_OUTPUT_PATH=../../erizo_controller/erizoClient/dist/production/erizo/erizo.js
+ERIZO_NO_ADAPTER_CLIENT_DEBUG_OUTPUT_PATH=../../erizo_controller/erizoClient/dist/debug/erizonoadapter/erizo.js
+ERIZO_NO_ADAPTER_CLIENT_MINIFIED_OUTPUT_PATH=../../erizo_controller/erizoClient/dist/production/erizonoadapter/erizo.js
 
-if [ -f $ERIZO_CLIENT_DEBUG_OUTPUT_PATH -a -f $ERIZO_CLIENT_MINIFIED_OUTPUT_PATH ]; then
+if [ -f $ERIZO_CLIENT_DEBUG_OUTPUT_PATH -a -f $ERIZO_CLIENT_MINIFIED_OUTPUT_PATH -a -f $ERIZO_NO_ADAPTER_CLIENT_DEBUG_OUTPUT_PATH -a -f $ERIZO_NO_ADAPTER_CLIENT_MINIFIED_OUTPUT_PATH ]; then
     cp $ERIZO_CLIENT_DEBUG_OUTPUT_PATH ./erizo.js
     cp $ERIZO_CLIENT_MINIFIED_OUTPUT_PATH ./erizo.min.js
+    cp $ERIZO_NO_ADAPTER_CLIENT_DEBUG_OUTPUT_PATH ./erizo.no_adapter.js
+    cp $ERIZO_NO_ADAPTER_CLIENT_MINIFIED_OUTPUT_PATH ./erizo.no_adapter.min.js
 
-    tar -czvf erizo-$VERSIONVAL.tgz bower.json erizo.js erizo.min.js
+    tar -czvf erizo-$VERSIONVAL.tgz bower.json erizo.js erizo.min.js erizo.no_adapter.js erizo.no_adapter.min.js
 
     curl -XPUT https://artifactory-pit.mmodal-npd.com/artifactory/internal-bower-pit/ffs/erizo/ -T erizo-$VERSIONVAL.tgz
 else
