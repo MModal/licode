@@ -47,23 +47,41 @@ cd $SCRIPT/erizoClient
 
 VERSIONVAL=`cat version`
 echo "My version is $VERSIONVAL"
-sed -i -e 's/__version__/'"$VERSIONVAL"'/g' bower.json
+sed -i -e 's/__version__/'"$VERSIONVAL"'/g' bower_template.json
 
 ERIZO_CLIENT_DEBUG_OUTPUT_PATH=../../erizo_controller/erizoClient/dist/debug/erizo/erizo.js
 ERIZO_CLIENT_MINIFIED_OUTPUT_PATH=../../erizo_controller/erizoClient/dist/production/erizo/erizo.js
 ERIZO_NO_ADAPTER_CLIENT_DEBUG_OUTPUT_PATH=../../erizo_controller/erizoClient/dist/debug/erizonoadapter/erizo.js
 ERIZO_NO_ADAPTER_CLIENT_MINIFIED_OUTPUT_PATH=../../erizo_controller/erizoClient/dist/production/erizonoadapter/erizo.js
 
-if [ -f $ERIZO_CLIENT_DEBUG_OUTPUT_PATH -a -f $ERIZO_CLIENT_MINIFIED_OUTPUT_PATH -a -f $ERIZO_NO_ADAPTER_CLIENT_DEBUG_OUTPUT_PATH -a -f $ERIZO_NO_ADAPTER_CLIENT_MINIFIED_OUTPUT_PATH ]; then
+if [ -f $ERIZO_CLIENT_DEBUG_OUTPUT_PATH -a -f $ERIZO_CLIENT_MINIFIED_OUTPUT_PATH ]; then
     cp $ERIZO_CLIENT_DEBUG_OUTPUT_PATH ./erizo.js
     cp $ERIZO_CLIENT_MINIFIED_OUTPUT_PATH ./erizo.min.js
-    cp $ERIZO_NO_ADAPTER_CLIENT_DEBUG_OUTPUT_PATH ./erizo.no_adapter.js
-    cp $ERIZO_NO_ADAPTER_CLIENT_MINIFIED_OUTPUT_PATH ./erizo.no_adapter.min.js
+    cp bower_template.json bower.json
+    sed -i -e 's/__main__/erizo.min.js/g' bower.json
+    sed -i -e 's/__name__/erizo/g' bower.json
 
-    tar -czvf erizo-$VERSIONVAL.tgz bower.json erizo.js erizo.min.js erizo.no_adapter.js erizo.no_adapter.min.js
+    tar -czvf erizo-$VERSIONVAL.tgz bower.json erizo.js erizo.min.js
 
     curl -XPUT https://artifactory-pit.mmodal-npd.com/artifactory/internal-bower-pit/ffs/erizo/ -T erizo-$VERSIONVAL.tgz
 else
     echo "Don't see the output files, something went wrong"
+    exit 1
+fi
+
+rm bower.json
+
+if [ -f $ERIZO_NO_ADAPTER_CLIENT_DEBUG_OUTPUT_PATH -a -f $ERIZO_NO_ADAPTER_CLIENT_MINIFIED_OUTPUT_PATH ]; then
+    cp $ERIZO_NO_ADAPTER_CLIENT_DEBUG_OUTPUT_PATH ./erizo.no_adapter.js
+    cp $ERIZO_NO_ADAPTER_CLIENT_MINIFIED_OUTPUT_PATH ./erizo.no_adapter.min.js
+    cp bower_template.json bower.json
+    sed -i -e 's/__main__/erizo.no_adapter.js/g' bower.json
+    sed -i -e 's/__name__/erizo.no_adapter/g' bower.json
+
+    tar -czvf erizo.no_adapter-$VERSIONVAL.tgz bower.json erizo.no_adapter.js erizo.no_adapter.min.js
+
+    curl -XPUT https://artifactory-pit.mmodal-npd.com/artifactory/internal-bower-pit/ffs/erizo.no_adapter/ -T erizo.no_adapter-$VERSIONVAL.tgz
+else
+    echo "Don't see the output files, something went wrong with the no adapter version"
     exit 1
 fi
