@@ -24,13 +24,14 @@ const config = {
 };
 
 const tasks = ['clean', 'bundle', 'compile', 'dist'];
-const targets = ['erizo', 'erizofc'];
+const targets = ['erizo', 'erizonoadapter', 'erizofc'];
 const allTasks = ['lint'];
 
 
 const taskFunctions = {};
 taskFunctions.erizo = require('./gulp/erizoTasks.js')(gulp, plugins, config);
 taskFunctions.erizofc = require('./gulp/erizoFcTasks.js')(gulp, plugins, config);
+taskFunctions.erizonoadapter = require('./gulp/erizoNoAdapterTasks.js')(gulp, plugins, config);
 
 targets.forEach(
   (target) => {
