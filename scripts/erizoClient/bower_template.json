@@ -1,12 +1,12 @@
 {
-  "name": "erizo",
+  "name": "__name__",
   "version": "__version__",
   "ignore": [],
   "authors": [
     "The Licode Team"
   ],
   "description": "The Erizo client",
-  "main": "erizo.min.js",
+  "main": "__main__",
   "keywords": [
     "Licode",
     "Erizo"  

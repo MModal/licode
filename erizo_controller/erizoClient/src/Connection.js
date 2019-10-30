@@ -99,10 +99,18 @@ const GetUserMedia = (config, callback = () => {}, error = () => {}) => {
         Logger.debug('Screen sharing in Chrome');
         screenConfig = {};
         if (config.desktopStreamId) {
-          screenConfig.video = config.video || { mandatory: {} };
-          screenConfig.video.mandatory = screenConfig.video.mandatory || {};
-          screenConfig.video.mandatory.chromeMediaSource = 'desktop';
-          screenConfig.video.mandatory.chromeMediaSourceId = config.desktopStreamId;
+          screenConfig.video = {
+            mandatory: {
+              maxWidth: config.video && config.video.width ? config.video.width.max : 1024,
+              maxHeight: config.video && config.video.height ? config.video.height.max : 768,
+              minFrameRate: config.video && config.video.frameRate ? config.video.frameRate.min : 1,
+              maxFrameRate: config.video && config.video.frameRate ?
+                config.video.frameRate.max : 30,
+              chromeMediaSource: 'desktop',
+              chromeMediaSourceId: config.desktopStreamId,
+            },
+          };
+          Logger.info(`Starting screen capture using the source ID passed by the native client. Using ${JSON.stringify(screenConfig)}`);
           getUserMedia(screenConfig, callback, error);
         } else {
           // Default extensionId - this extension is only usable in our server,
@@ -124,14 +132,19 @@ const GetUserMedia = (config, callback = () => {}, error = () => {}) => {
                   return;
                 }
                 const theId = response.streamId;
-                if (config.video.mandatory !== undefined) {
-                  screenConfig.video = config.video;
-                  screenConfig.video.mandatory.chromeMediaSource = 'desktop';
-                  screenConfig.video.mandatory.chromeMediaSourceId = theId;
-                } else {
-                  screenConfig = { video: { mandatory: { chromeMediaSource: 'desktop',
-                    chromeMediaSourceId: theId } } };
-                }
+                screenConfig.video = {
+                  mandatory: {
+                    maxWidth: config.video && config.video.width ? config.video.width.max : 1024,
+                    maxHeight: config.video && config.video.height ? config.video.height.max : 768,
+                    minFrameRate: config.video && config.video.frameRate ?
+                      config.video.frameRate.min : 1,
+                    maxFrameRate: config.video && config.video.frameRate ?
+                      config.video.frameRate.max : 30,
+                    chromeMediaSource: 'desktop',
+                    chromeMediaSourceId: theId,
+                  },
+                };
+                Logger.info(`Starting screen capture using the source ID provided by the extension. Using ${JSON.stringify(screenConfig)}`);
                 getUserMedia(screenConfig, callback, error);
               });
           } catch (e) {

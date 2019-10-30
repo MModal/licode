@@ -18,7 +18,7 @@ config.logger.configFile = '../log4js_configuration.json'; //default value: "../
  It's used by Nuve and ErizoController
 **********************************************************/
 config.cloudProvider = {};
-config.cloudProvider.name = '_cloud_ptovider_';
+config.cloudProvider.name = '_cloud_provider_';
 
 /*********************************************************
  NUVE CONFIGURATION
@@ -31,6 +31,7 @@ config.nuve.superserviceKey = '_superservice_key_'; // default value: ''
 config.nuve.testErizoController = 'localhost:8080'; // default value: 'localhost:8080'
 // Nuve Cloud Handler policies are in nuve/nuveAPI/ch_policies/ folder
 config.nuve.cloudHandlerPolicy = 'round_robin_policy.js'; // default value: 'default_policy.js'
+config.nuve.ssl = _nuve_ssl_;
 
 
 /*********************************************************
@@ -59,7 +60,7 @@ config.erizoController.maxVideoBW = 300; //default value: 300
 
 // Public erizoController IP for websockets (useful when behind NATs)
 // Use '' to automatically get IP from the interface
-config.erizoController.publicIP = ''; //default value: ''
+config.erizoController.publicIP = '_controller_public_ip_'; //default value: ''
 config.erizoController.networkinterface = ''; //default value: ''
 
 // This configuration is used by the clients to reach erizoController

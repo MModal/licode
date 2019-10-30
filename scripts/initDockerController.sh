@@ -3,7 +3,7 @@ ROOT=/opt/licode
 SCRIPTS="$ROOT"/scripts
 
 setup_config() {
-  echo "Setting up config with " $1
+  echo "Setting up config with " $*
   cd $SCRIPTS/config_update
   source env/bin/activate
   #use the Secrets manager key name to get secrets
