@@ -30,6 +30,4 @@ WORKDIR /opt/licode/scripts/config_update
 RUN ./install.sh
 WORKDIR /opt/licode
 
-EXPOSE 58045-65000
-
 ENTRYPOINT ["./scripts/initDockerAgent.sh"]
