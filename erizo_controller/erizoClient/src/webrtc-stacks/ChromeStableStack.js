@@ -69,21 +69,22 @@ const ChromeStableStack = (specInput) => {
   };
 
   if (spec.video && 'RTCRtpSender' in window && 'setParameters' in window.RTCRtpSender.prototype) {
-    that.peerConnection.getSenders().forEach((sender) => {
-      if (sender.track.kind === 'video') {
-        const params = sender.getParameters();
-        Logger.info(`RTCRtpSender parameters = ${params}, encodings = ${params.encodings}`);
-        if (!params.encodings) {
-          params.encodings = [{}];
-        }
-        params.encodings[0].maxBitrate = spec.maxVideoBW * 1000;
-        sender.setParameters(params).then(() => {
-          Logger.info('maxBitrate set on RTCRtpSender');
-        }).catch((err) => {
-          Logger.error(`Error setting maxBitrate on RTCRtpSender: ${err}`);
-        });
+    const sender = that.peerConnection.getSenders()[0];
+    const receiver = that.peerConnection.getReceivers()[0];
+    Logger.info(`Sender is ${sender} and receiver is ${receiver}`);
+    if (sender.track.kind === 'video') {
+      const params = sender.getParameters();
+      Logger.info(`RTCRtpSender parameters = ${params}, encodings = ${params.encodings}`);
+      if (!params.encodings) {
+        params.encodings = [{}];
       }
-    });
+      params.encodings[0].maxBitrate = spec.maxVideoBW * 1000;
+      sender.setParameters(params).then(() => {
+        Logger.info('maxBitrate set on RTCRtpSender');
+      }).catch((err) => {
+        Logger.error(`Error setting maxBitrate on RTCRtpSender: ${err}`);
+      });
+    }
   }
 
   return that;
