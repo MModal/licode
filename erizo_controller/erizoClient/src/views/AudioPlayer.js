@@ -26,11 +26,6 @@ const AudioPlayer = (spec) => {
   // DOM element in which the AudioPlayer will be appended
   that.elementID = spec.elementID;
 
-
-  Logger.debug(`Creating URL from stream ${that.stream}`);
-  const myURL = window.URL || webkitURL;
-  that.streamUrl = myURL.createObjectURL(that.stream);
-
     // Audio tag
   that.audio = document.createElement('audio');
   that.audio.setAttribute('id', `stream${that.id}`);
@@ -100,7 +95,7 @@ const AudioPlayer = (spec) => {
     that.parentNode = document.body;
   }
 
-  that.audio.src = that.streamUrl;
+  that.audio.srcObject = that.stream;
 
   return that;
 };
