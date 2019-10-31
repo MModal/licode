@@ -1,4 +1,3 @@
-/* global window */
 
 import BaseStack from './BaseStack';
 import SdpHelpers from './../utils/SdpHelpers';
@@ -67,25 +66,6 @@ const ChromeStableStack = (specInput) => {
     result += 'a=x-google-flag:conference\r\n';
     return sdp.replace(matchGroup[0], result);
   };
-
-  if (spec.video && 'RTCRtpSender' in window && 'setParameters' in window.RTCRtpSender.prototype) {
-    const sender = that.peerConnection.getSenders()[0];
-    const receiver = that.peerConnection.getReceivers()[0];
-    Logger.info(`Sender is ${sender} and receiver is ${receiver}`);
-    if (sender.track.kind === 'video') {
-      const params = sender.getParameters();
-      Logger.info(`RTCRtpSender parameters = ${params}, encodings = ${params.encodings}`);
-      if (!params.encodings) {
-        params.encodings = [{}];
-      }
-      params.encodings[0].maxBitrate = spec.maxVideoBW * 1000;
-      sender.setParameters(params).then(() => {
-        Logger.info('maxBitrate set on RTCRtpSender');
-      }).catch((err) => {
-        Logger.error(`Error setting maxBitrate on RTCRtpSender: ${err}`);
-      });
-    }
-  }
 
   return that;
 };
