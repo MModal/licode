@@ -1,8 +1,7 @@
-/* global window, document, webkitURL */
+/* global document */
 
 import View from './View';
 import Bar from './Bar';
-import Logger from '../utils/Logger';
 
 /*
  * AudioPlayer represents a Licode Audio component that shows either a local or a remote Audio.

@@ -1,8 +1,7 @@
-/* global window, document, webkitURL, L */
+/* global document, L */
 
 import View from './View';
 import Bar from './Bar';
-import Logger from '../utils/Logger';
 
 /*
  * VideoPlayer represents a Licode video component that shows either a local or a remote video.
