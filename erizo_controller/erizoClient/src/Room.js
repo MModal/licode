@@ -181,6 +181,8 @@ const Room = (altIo, altConnection, specInput) => {
     const stream = streamInput;
     stream.pc = that.Connection.buildConnection(getErizoConnectionOptions(stream, options));
 
+    stream.pc.addStream(stream.stream);
+
     if (stream.video && 'RTCRtpSender' in window && 'setParameters' in window.RTCRtpSender.prototype && 'getSenders' in stream.pc) {
       const senderInterval = window.setInterval(() => {
         if (!stream || !stream.pc) {
@@ -205,7 +207,6 @@ const Room = (altIo, altConnection, specInput) => {
       }, 50);
     }
 
-    stream.pc.addStream(stream.stream);
     stream.pc.oniceconnectionstatechange = (state) => {
       if (state === 'failed') {
         onStreamFailed(stream);
