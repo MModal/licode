@@ -182,26 +182,35 @@ const Room = (altIo, altConnection, specInput) => {
     stream.pc = that.Connection.buildConnection(getErizoConnectionOptions(stream, options));
 
     if (stream.video && 'RTCRtpSender' in window && 'setParameters' in window.RTCRtpSender.prototype && 'getSenders' in stream.pc) {
-      const sender = stream.pc.getSenders()[0];
-      Logger.info(`Sender is ${sender}`);
-      if (sender && sender.track.kind === 'video') {
-        const params = sender.getParameters();
-        Logger.info(`RTCRtpSender parameters = ${params}, encodings = ${params.encodings}`);
-        if (!params.encodings) {
-          params.encodings = [{}];
+      const senderInterval = window.setInterval(() => {
+        if (!stream || !stream.pc) {
+          window.clearInterval(senderInterval);
+          return;
         }
-        params.encodings[0].maxBitrate = options.maxVideoBW * 1000;
-        sender.setParameters(params).then(() => {
-          Logger.info('maxBitrate set on RTCRtpSender');
-        }).catch((err) => {
-          Logger.error(`Error setting maxBitrate on RTCRtpSender: ${err}`);
-        });
-      }
+        const sender = stream.pc.getSenders()[0];
+        Logger.info(`Sender is ${sender}`);
+        if (sender && sender.track.kind === 'video') {
+          window.clearInterval(senderInterval);
+          const params = sender.getParameters();
+          Logger.info(`RTCRtpSender parameters = ${params}, encodings = ${params.encodings}`);
+          if (!params.encodings) {
+            params.encodings = [{}];
+          }
+          params.encodings[0].maxBitrate = options.maxVideoBW * 1000;
+          sender.setParameters(params).then(() => {
+            Logger.info('maxBitrate set on RTCRtpSender');
+          }).catch((err) => {
+            Logger.error(`Error setting maxBitrate on RTCRtpSender: ${err}`);
+          });
+        }
+      }, 50);
       window.setInterval(() => {
         const senderForStat = stream.pc.getSenders()[0];
         if (senderForStat) {
           senderForStat.getStats().then((res) => {
-            Logger.info(`Stats are ${JSON.stringify(res)}`);
+            res.forEach((report) => {
+              Logger.info(`Stats are ${JSON.stringify(report)}`);
+            });
           }).catch((err) => {
             Logger.error(`Error getting stats ${err}`);
           });
