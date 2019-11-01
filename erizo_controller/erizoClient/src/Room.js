@@ -188,12 +188,11 @@ const Room = (altIo, altConnection, specInput) => {
           return;
         }
         const sender = stream.pc.getSenders()[0];
-        Logger.info(`Sender is ${sender}`);
         if (sender && sender.track.kind === 'video') {
           window.clearInterval(senderInterval);
           const params = sender.getParameters();
-          Logger.info(`RTCRtpSender parameters = ${params}, encodings = ${params.encodings}`);
-          if (!params.encodings) {
+          Logger.info(`RTCRtpSender parameters = ${JSON.stringify(params)}`);
+          if (!params.encodings || params.encodings.length <= 0) {
             params.encodings = [{}];
           }
           params.encodings[0].maxBitrate = options.maxVideoBW * 1000;
@@ -204,18 +203,6 @@ const Room = (altIo, altConnection, specInput) => {
           });
         }
       }, 50);
-      window.setInterval(() => {
-        const senderForStat = stream.pc.getSenders()[0];
-        if (senderForStat) {
-          senderForStat.getStats().then((res) => {
-            res.forEach((report) => {
-              Logger.info(`Stats are ${JSON.stringify(report)}`);
-            });
-          }).catch((err) => {
-            Logger.error(`Error getting stats ${err}`);
-          });
-        }
-      }, 10000);
     }
 
     stream.pc.addStream(stream.stream);
