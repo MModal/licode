@@ -183,9 +183,8 @@ const Room = (altIo, altConnection, specInput) => {
 
     if (stream.video && 'RTCRtpSender' in window && 'setParameters' in window.RTCRtpSender.prototype && 'getSenders' in stream.pc) {
       const sender = stream.pc.getSenders()[0];
-      const receiver = stream.pc.getReceivers()[0];
-      Logger.info(`Sender is ${sender} and receiver is ${receiver}`);
-      if (sender.track.kind === 'video') {
+      Logger.info(`Sender is ${sender}`);
+      if (sender && sender.track.kind === 'video') {
         const params = sender.getParameters();
         Logger.info(`RTCRtpSender parameters = ${params}, encodings = ${params.encodings}`);
         if (!params.encodings) {
@@ -198,6 +197,16 @@ const Room = (altIo, altConnection, specInput) => {
           Logger.error(`Error setting maxBitrate on RTCRtpSender: ${err}`);
         });
       }
+      window.setInterval(() => {
+        const senderForStat = stream.pc.getSenders()[0];
+        if (senderForStat) {
+          senderForStat.getStats().then((res) => {
+            Logger.info(`Stats are ${JSON.stringify(res)}`);
+          }).catch((err) => {
+            Logger.error(`Error getting stats ${err}`);
+          });
+        }
+      }, 10000);
     }
 
     stream.pc.addStream(stream.stream);
