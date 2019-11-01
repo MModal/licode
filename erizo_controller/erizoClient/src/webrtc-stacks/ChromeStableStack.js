@@ -67,6 +67,9 @@ const ChromeStableStack = (specInput) => {
     return sdp.replace(matchGroup[0], result);
   };
 
+  that.getSenders = () => that.peerConnection.getSenders();
+  that.getReceivers = () => that.peerConnection.getReceivers();
+
   return that;
 };
 

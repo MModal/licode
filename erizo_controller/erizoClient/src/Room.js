@@ -181,7 +181,7 @@ const Room = (altIo, altConnection, specInput) => {
     const stream = streamInput;
     stream.pc = that.Connection.buildConnection(getErizoConnectionOptions(stream, options));
 
-    if (stream.video && 'RTCRtpSender' in window && 'setParameters' in window.RTCRtpSender.prototype) {
+    if (stream.video && 'RTCRtpSender' in window && 'setParameters' in window.RTCRtpSender.prototype && 'getSenders' in stream.pc) {
       const sender = stream.pc.getSenders()[0];
       const receiver = stream.pc.getReceivers()[0];
       Logger.info(`Sender is ${sender} and receiver is ${receiver}`);
@@ -191,7 +191,7 @@ const Room = (altIo, altConnection, specInput) => {
         if (!params.encodings) {
           params.encodings = [{}];
         }
-        params.encodings[0].maxBitrate = spec.maxVideoBW * 1000;
+        params.encodings[0].maxBitrate = options.maxVideoBW * 1000;
         sender.setParameters(params).then(() => {
           Logger.info('maxBitrate set on RTCRtpSender');
         }).catch((err) => {
