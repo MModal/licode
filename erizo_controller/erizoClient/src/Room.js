@@ -1,5 +1,3 @@
-/* global window */
-
 import Connection from './Connection';
 import { EventDispatcher, StreamEvent, RoomEvent } from './Events';
 import { Socket } from './Socket';
@@ -182,31 +180,6 @@ const Room = (altIo, altConnection, specInput) => {
     stream.pc = that.Connection.buildConnection(getErizoConnectionOptions(stream, options));
 
     stream.pc.addStream(stream.stream);
-
-    if (stream.video && 'RTCRtpSender' in window && 'setParameters' in window.RTCRtpSender.prototype && 'getSenders' in stream.pc) {
-      const senderInterval = window.setInterval(() => {
-        if (!stream || !stream.pc) {
-          window.clearInterval(senderInterval);
-          return;
-        }
-        const sender = stream.pc.getSenders()[0];
-        if (sender && sender.track.kind === 'video') {
-          window.clearInterval(senderInterval);
-          const params = sender.getParameters();
-          Logger.info(`RTCRtpSender parameters = ${JSON.stringify(params)}`);
-          if (!params.encodings || params.encodings.length <= 0) {
-            params.encodings = [{}];
-          }
-          params.encodings[0].maxBitrate = options.maxVideoBW * 1000;
-          sender.setParameters(params).then(() => {
-            Logger.info('maxBitrate set on RTCRtpSender');
-          }).catch((err) => {
-            Logger.error(`Error setting maxBitrate on RTCRtpSender: ${err}`);
-          });
-        }
-      }, 50);
-    }
-
     stream.pc.oniceconnectionstatechange = (state) => {
       if (state === 'failed') {
         onStreamFailed(stream);
