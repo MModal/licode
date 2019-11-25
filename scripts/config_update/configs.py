@@ -91,7 +91,10 @@ if __name__ == '__main__':
             else:
                 config = config.replace('_controller_public_ip_', '')
         elif args.service == 'agent':
-            config = config.replace('_cloud_provider_', 'amazon')
+            if 'cloud_provider' in secrets:
+                config = config.replace('_cloud_provider_', secrets['cloud_provider'])
+            else:
+                config = config.replace('_cloud_provider_', '')
             config = config.replace('_ice_servers_', '{}')
             config = config.replace('_controller_public_ip_', '')
             config = config.replace('_nuve_ssl_', 'false')

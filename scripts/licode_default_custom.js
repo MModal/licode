@@ -173,7 +173,7 @@ config.erizo.networkinterface = ''; //default value: ''
 
 //note, this won't work with all versions of libnice. With 0 all the available ports are used
 config.erizo.minport = 58045; // default value: 0
-config.erizo.maxport = 65000; // default value: 0
+config.erizo.maxport = 61045; // default value: 0
 
 //Use of internal nICEr library instead of libNice.
 config.erizo.useNicer = false;  // default value: false
