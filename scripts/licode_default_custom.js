@@ -125,7 +125,7 @@ config.erizoAgent.prerunProcesses = 1; // default value: 1
 
 // Public erizoAgent IP for ICE candidates (useful when behind NATs)
 // Use '' to automatically get IP from the interface
-config.erizoAgent.publicIP = ''; //default value: ''
+config.erizoAgent.publicIP = '_agent_public_ip_'; //default value: ''
 config.erizoAgent.networkinterface = ''; //default value: ''
 
 // Use the name of the inferface you want to bind for ICE candidates

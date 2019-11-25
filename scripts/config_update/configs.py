@@ -39,6 +39,7 @@ def parse_arguments():
     parser.add_argument("--database", help="Mongo secret name")
     parser.add_argument("--usePublicIP", help="Controller should use public IP, use when outside of us-east-1", action='store_true')
     parser.add_argument("--ssl", help="Run the web frontend over SSL", action='store_true')
+    parser.add_argument("--agentPublicIP", help="Public IP address of the agent, use when running outside AWS")
     
     args = parser.parse_args()
     if args.secret is None:
@@ -91,10 +92,12 @@ if __name__ == '__main__':
             else:
                 config = config.replace('_controller_public_ip_', '')
         elif args.service == 'agent':
-            if 'cloud_provider' in secrets:
-                config = config.replace('_cloud_provider_', secrets['cloud_provider'])
-            else:
+            if args.agentPublicIP is not None:
                 config = config.replace('_cloud_provider_', '')
+                config = config.replace('_agent_public_ip_', args.agentPublicIP)
+            else:
+                config = config.replace('_cloud_provider_', 'amazon')
+                config = config.replace('_agent_public_ip_', '')
             config = config.replace('_ice_servers_', '{}')
             config = config.replace('_controller_public_ip_', '')
             config = config.replace('_nuve_ssl_', 'false')
