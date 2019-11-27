@@ -111,7 +111,7 @@ config.erizoController.reportSubscriptions = {
 config.erizoController.recording_path = undefined; // default value: undefined
 
 // Erizo Controller Cloud Handler policies are in erizo_controller/erizoController/ch_policies/ folder
-config.erizoController.cloudHandlerPolicy = 'default_policy.js'; // default value: 'default_policy.js'
+config.erizoController.cloudHandlerPolicy = 'least_busy_policy.js'; // default value: 'default_policy.js'
 
 /*********************************************************
  ERIZO AGENT CONFIGURATION
