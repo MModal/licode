@@ -51,8 +51,6 @@ exports.addRoom = function (room, callback) {
 exports.assignErizoControllerToRoom = function(room, erizoControllerId, callback) {
     var ecId = erizoControllerId + '';
     
-    console.log("Starting the process of EC assign to room", room._id, ecId);
-    
     if(!room || !room._id || room._id.length <= 0) {
         if(callback) {
             callback();
@@ -63,7 +61,7 @@ exports.assignErizoControllerToRoom = function(room, erizoControllerId, callback
     var findECAndUpdateRoom = function(erizoControllerId) {
         db.erizoControllers.findOne({_id: db.ObjectId(erizoControllerId)}, function(err, erizoController) {
             if(err || !erizoController) {
-                console.error("Erizo controller not found in db", err);
+                log.error("Erizo controller not found in db: " + JSON.stringify(err));
                 if(callback) {
                     callback();
                 }
@@ -72,7 +70,7 @@ exports.assignErizoControllerToRoom = function(room, erizoControllerId, callback
             room.erizoControllerId = db.ObjectId(erizoControllerId);
             db.rooms.save(room, function(err) {
                if(err) {
-                   console.error("Error in saving the room", room, err);
+                   log.error("Error in saving the room: " + JSON.stringify(err) + ", room: " + logger.objectToLog(room));
                    if(callback) {
                        callback();
                    }
@@ -86,7 +84,7 @@ exports.assignErizoControllerToRoom = function(room, erizoControllerId, callback
     if (room.erizoControllerId) {
         db.erizoControllers.findOne({_id: db.ObjectId(ecId)}, function(err, erizoController) {
             if(err) {
-                console.error("Error in finding Erizo Controller", ecId, err);
+                log.error("Error in finding Erizo Controller " + ecId + ", " + JSON.stringify(err));
                 if(callback) {
                     callback();
                 }

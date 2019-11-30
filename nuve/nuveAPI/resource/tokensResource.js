@@ -78,9 +78,7 @@ var generateToken = function (req, callback) {
     if (currentService.testRoom !== undefined) {
         tr = currentService.testRoom._id;
     }
-    console.log("Will try to fins an EC for", currentRoom);
     if (tr === r) {
-        console.log('Current room is undefined');
         if (currentService.testToken === undefined) {
             token.use = 0;
             token.host = dataBase.testErizoController;
@@ -113,7 +111,6 @@ var generateToken = function (req, callback) {
     } else {
 
         cloudHandler.getErizoControllerForRoom(currentRoom, function (ec) {
-            console.log('EC returned is', ec);
             if (ec === 'timeout' || !ec) {
                 callback('error');
                 return;
