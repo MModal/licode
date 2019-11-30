@@ -34,10 +34,9 @@ exports.getErizoAgent = function (agents) {
 			if (agent.timeout > 5) {
 				continue;
 			}
-			if (agent.stats && agent.stats.perc_cpu) {
-				log.info(`Type of cpu info is ${typeof agent.stats.perc_cpu}`);
+			if (agent.stats && typeof agent.stats.perc_cpu === 'number') {
 				if (selectedAgent) {
-					if (parseFloat(selectedAgent.stats.perc_cpu) > parseFloat(agent.stats.perc_cpu)) {
+					if (selectedAgent.stats.perc_cpu > agent.stats.perc_cpu) {
 						selectedAgent = agent;
 					}
 				} else {
