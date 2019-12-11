@@ -16,4 +16,4 @@ cd $ROOT/scripts
 
 setup_config $*
 
-su -c "$SCRIPTS/runAgent.sh" -s /bin/sh nobody
+./runAgent.sh
