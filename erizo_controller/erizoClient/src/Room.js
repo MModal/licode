@@ -807,15 +807,15 @@ const Room = (altIo, altConnection, specInput) => {
   };
 
   that.recreateRemoteStreamFrom = (oldStream) => {
-    const stream = Stream(that.Connection, { streamID: oldStream.streamID,
+    const stream = Stream(that.Connection, { streamID: oldStream.getID(),
       local: false,
-      audio: oldStream.audio,
-      video: oldStream.video,
-      data: oldStream.data,
-      screen: oldStream.screen,
-      attributes: oldStream.attributes });
+      audio: oldStream.hasAudio(),
+      video: oldStream.hasVideo(),
+      data: oldStream.hasData(),
+      screen: oldStream.hasScreen(),
+      attributes: oldStream.getAttributes() });
     stream.room = that;
-    remoteStreams.add(stream.streamID, stream);
+    remoteStreams.add(stream.getID(), stream);
     return stream;
   };
 
