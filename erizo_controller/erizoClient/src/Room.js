@@ -806,6 +806,19 @@ const Room = (altIo, altConnection, specInput) => {
     return streams;
   };
 
+  that.recreateRemoteStreamFrom = (oldStream) => {
+    const stream = Stream(that.Connection, { streamID: oldStream.streamID,
+      local: false,
+      audio: oldStream.audio,
+      video: oldStream.video,
+      data: oldStream.data,
+      screen: oldStream.screen,
+      attributes: oldStream.attributes });
+    stream.room = that;
+    remoteStreams.add(stream.streamID, stream);
+    return stream;
+  };
+
   that.on('room-disconnected', clearAll);
 
   socket.on('onAddStream', socketEventToArgs.bind(null, socketOnAddStream));
