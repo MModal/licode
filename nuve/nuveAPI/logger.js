@@ -23,7 +23,10 @@ exports.logger = log4js;
 exports.logger.objectToLog = function (jsonInput) {
     'use strict';
     if (jsonInput === undefined){
-        return '';
+        return 'undefined';
+    }
+    if (jsonInput === null){
+        return 'null';
     }
     if (typeof(jsonInput) !== 'object') {
         return jsonInput;

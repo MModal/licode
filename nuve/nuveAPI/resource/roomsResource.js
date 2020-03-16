@@ -1,7 +1,6 @@
 /*global exports, require*/
 'use strict';
 var roomRegistry = require('./../mdb/roomRegistry');
-var serviceRegistry = require('./../mdb/serviceRegistry');
 
 var logger = require('./../logger').logger;
 
@@ -34,9 +33,8 @@ exports.createRoom = function (req, res) {
             res.send(currentService.testRoom);
         } else {
             room = {name: 'testRoom'};
-            roomRegistry.addRoom(room, function (result) {
+            roomRegistry.addRoom(room, currentService, function (result) {
                 currentService.testRoom = result;
-                currentService.rooms.push(result);
                 serviceRegistry.updateService(currentService);
                 log.info('message: testRoom created, serviceId: ' + currentService.name);
                 res.send(result);
@@ -51,9 +49,7 @@ exports.createRoom = function (req, res) {
         if (req.body.options.data) {
             room.data = req.body.options.data;
         }
-        roomRegistry.addRoom(room, function (result) {
-            currentService.rooms.push(result);
-            serviceRegistry.updateService(currentService);
+        roomRegistry.addRoom(room, currentService, function (result) {
             log.info('message: createRoom success, roomName:' + req.body.name + ', serviceId: ' +
                      currentService.name + ', p2p: ' + room.p2p);
             res.send(result);

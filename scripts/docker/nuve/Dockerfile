@@ -19,10 +19,17 @@ FROM ubuntu:16.04
 
 LABEL maintainer="MModal"
 
-COPY --from=builder /opt/licode /opt/licode
+RUN set -eux; \
+    groupadd --gid 991 --system nuve; \
+    useradd --uid 991 --system --gid nuve nuve; \
+    mkdir -p /opt/licode; \
+    chown -fR nuve:nuve /opt/licode; \
+    apt-get update; \
+    apt-get install python3 python3-pip python3-venv -y
 
-RUN apt-get update && \
-    apt-get install python3-pip python3-venv -y
+COPY --from=builder --chown=nuve:nuve /opt/licode /opt/licode
+
+USER nuve:nuve
 
 WORKDIR /opt/licode/scripts/config_update
 RUN ./install.sh

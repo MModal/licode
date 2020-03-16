@@ -4,6 +4,8 @@ var db = require('./dataBase').db;
 
 var logger = require('./../logger').logger;
 
+var erizoControllerRegistry = require('./erizoControllerRegistry');
+
 // Logger
 var log = logger.getLogger('RoomRegistry');
 
@@ -14,6 +16,18 @@ exports.getRooms = function (callback) {
         } else {
             callback(rooms);
         }
+    });
+};
+
+exports.getRoomForService = function (id, serviceId, callback) {
+    db.rooms.findOne({_id: db.ObjectId(id), service: db.ObjectId(serviceId)}, function (err, room) {
+        if (err || !room) {
+            log.warn(`warn: getRoomForService room not found with id ${id} for ${serviceId}. Error: ${logger.objectToLog(err)}`);
+            room = undefined;
+        } else {
+            log.info(`message: getRoomForService found room ${JSON.stringify(room)} for id ${id} and service ${serviceId}`);
+        }
+        callback(room);
     });
 };
 
@@ -41,7 +55,8 @@ var hasRoom = exports.hasRoom = function (id, callback) {
 /*
  * Adds a new room to the data base.
  */
-exports.addRoom = function (room, callback) {
+exports.addRoom = function (room, service, callback) {
+    room.service = db.ObjectId(service._id);
     db.rooms.save(room, function (error, saved) {
         if (error) log.warn('message: addRoom error, ' + logger.objectToLog(error));
         callback(saved);
@@ -59,9 +74,9 @@ exports.assignErizoControllerToRoom = function(room, erizoControllerId, callback
     }
     
     var findECAndUpdateRoom = function(erizoControllerId) {
-        db.erizoControllers.findOne({_id: db.ObjectId(erizoControllerId)}, function(err, erizoController) {
-            if(err || !erizoController) {
-                log.error("Erizo controller not found in db: " + JSON.stringify(err));
+        erizoControllerRegistry.getErizoController(erizoControllerId, function(erizoController) {
+            if(!erizoController) {
+                log.error("Erizo controller not found in db" + erizoControllerId);
                 if(callback) {
                     callback();
                 }
@@ -75,23 +90,18 @@ exports.assignErizoControllerToRoom = function(room, erizoControllerId, callback
                        callback();
                    }
                } else {
+                   console.log(`Assigned EC ${erizoController._id} to the room ${JSON.stringify(room)}`);
                    callback(erizoController);
                }
             });
-        }); 
+        });
     };
     
     if (room.erizoControllerId) {
-        db.erizoControllers.findOne({_id: db.ObjectId(ecId)}, function(err, erizoController) {
-            if(err) {
-                log.error("Error in finding Erizo Controller " + ecId + ", " + JSON.stringify(err));
-                if(callback) {
-                    callback();
-                }
-                return;
-            }
+        erizoControllerRegistry.getErizoController(ecId, function (erizoController) {
             if(erizoController) {
-                return callback(erizoController);
+                console.log(`Found EC ${erizoController._id} for the room ${JSON.stringify(room)}`);
+                callback(erizoController);
             } else {
                 findECAndUpdateRoom(ecId);
             }
@@ -122,5 +132,11 @@ exports.removeRoom = function (id) {
                    logger.objectToLog(error));
             });
         }
+    });
+};
+
+exports.removeRoomsForService = function (serviceId) {
+    db.rooms.remove({service: db.ObjectId(serviceId)}, function (error) {
+        if (error) log.warn('message: removeRoomsForService error, ' + logger.objectToLog(error));
     });
 };

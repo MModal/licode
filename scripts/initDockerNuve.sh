@@ -16,4 +16,4 @@ cd $ROOT/scripts
 
 setup_config $*
 
-su -c "$SCRIPTS/runNuve.sh" -s /bin/sh nobody
+./runNuve.sh

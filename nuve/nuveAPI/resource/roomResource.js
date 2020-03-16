@@ -50,18 +50,12 @@ exports.updateRoom = function (req, res) {
             log.info('message: updateRoom - Invalid room');
             res.status(400).send('Invalid room');
         } else {
-            var id = '',
-                array = req.service.rooms,
-                index = -1,
-                i;
-
+            var id = '';
             id += currentRoom._id;
             var room = currentRoom;
 
             room.name = req.body.name;
             var options = req.body.options || {};
-
-
             if (options.p2p) {
                 room.p2p = true;
             }
@@ -70,20 +64,8 @@ exports.updateRoom = function (req, res) {
             }
 
             roomRegistry.updateRoom(id, room);
-
-            for (i = 0; i < array.length; i += 1) {
-                if (array[i]._id === currentRoom._id) {
-                    index = i;
-                }
-            }
-            if (index !== -1) {
-
-                req.service.rooms[index] = room;
-                serviceRegistry.updateService(req.service);
-                log.info('message: updateRoom  successful, roomId: ' + id + ', serviceId: ' +
-                    req.service._id);
-                res.send('Room Updated');
-            }
+            log.info('message: updateRoom  successful, roomId: ' + id + ', serviceId: ' + req.service._id);
+            res.send('Room Updated');
         }
     });
 };
@@ -99,10 +81,7 @@ exports.patchRoom = function (req, res) {
             log.info('message: pachRoom - room does not exist, roomId : ' + req.params.room);
             res.status(404).send('Room does not exist');
         } else {
-            var id = '',
-                array = req.service.rooms,
-                index = -1,
-                i;
+            var id = '';
 
             id += currentRoom._id;
             var room = currentRoom;
@@ -118,21 +97,8 @@ exports.patchRoom = function (req, res) {
             }
 
             roomRegistry.updateRoom(id, room);
-
-            for (i = 0; i < array.length; i += 1) {
-                if (array[i]._id === currentRoom._id) {
-                    index = i;
-                }
-            }
-            if (index !== -1) {
-
-                req.service.rooms[index] = room;
-                serviceRegistry.updateService(req.service);
-                log.info('message: patchRoom room successfully updated,  roomId: ' + id +
-                    ', serviceId: ' + req.service._id);
-
-                res.send('Room Updated');
-            }
+            log.info('message: patchRoom room successfully updated,  roomId: ' + id + ', serviceId: ' + req.service._id);
+            res.send('Room Updated');
         }
     });
 };
@@ -150,27 +116,15 @@ exports.deleteRoom = function (req, res) {
             log.info('message: deleteRoom - room does not exist, roomId: ' + req.params.room);
             res.status(404).send('Room does not exist');
         } else {
-            var id = '',
-                array = req.service.rooms,
-                index = -1,
-                i;
+            var id = '';
 
             id += currentRoom._id;
-            roomRegistry.removeRoom(id);
-
-            for (i = 0; i < array.length; i += 1) {
-                if (array[i]._id === currentRoom._id) {
-                    index = i;
-                }
-            }
-            if (index !== -1) {
-                req.service.rooms.splice(index, 1);
-                serviceRegistry.updateService(req.service);
-                log.info('message: deleteRoom - room successfully deleted, roomId: ' + id +
-                    ', serviceId: ' + req.service._id);
-                cloudHandler.deleteRoom(id, function () {});
+            
+            cloudHandler.deleteRoom(id, function () {
+                roomRegistry.removeRoom(id);
+                log.info('message: deleteRoom - room successfully deleted, roomId: ' + id + ', serviceId: ' + req.service._id);
                 res.send('Room deleted');
-            }
+            });
         }
     });
 };
