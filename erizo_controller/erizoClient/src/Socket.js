@@ -50,14 +50,14 @@ const Socket = (newIo) => {
       reconnect: true,
       reconnectionAttempts: 25,
       secure: token.secure,
-      transports: ['websocket']
+      transports: ['websocket'],
     };
     const transport = token.secure ? 'wss://' : 'ws://';
     let wsHost = token.host;
-    if(wsHost.charAt(wsHost.length - 1) === '/') {
+    if (wsHost.charAt(wsHost.length - 1) === '/') {
       wsHost = wsHost.substr(0, wsHost.length - 1);
     }
-    socket = that.IO.connect(transport + wsHost + '/erizo', options);
+    socket = that.IO.connect(`${transport}${wsHost}/erizo`, options);
     const clientId = token.tokenId;
 
     socket.on('onAddStream', emit.bind(that, 'onAddStream'));
