@@ -17,7 +17,7 @@ import Logger from './utils/Logger';
  * Event 'stream-added' indicates that there is a new stream available in the room.
  * Event 'stream-removed' shows that a previous available stream has been removed from the room.
  */
-const Room = (altIo, altConnection, specInput) => {
+const Room = (specInput, altIo, altConnection) => {
   const spec = specInput;
   const that = EventDispatcher(specInput);
   const DISCONNECTED = 0;

@@ -1,6 +1,5 @@
 /* global */
 
-import io from '../lib/socket.io';
 import Logger from './utils/Logger';
 
 import { EventDispatcher, LicodeEvent } from './Events';
@@ -25,7 +24,7 @@ const Socket = (newIo) => {
   that.DISCONNECTED = Symbol('disconnected');
 
   that.state = that.DISCONNECTED;
-  that.IO = newIo === undefined ? io : newIo;
+  that.IO = newIo;
 
   let socket;
 
