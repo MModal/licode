@@ -14,7 +14,7 @@ const SocketEvent = (type, specInput) => {
  * Class Stream represents a local or a remote Stream in the Room. It will handle the WebRTC
  * stream and identify the stream and where it should be drawn.
  */
-const Socket = (newIo) => {
+const Socket = (IOManager) => {
   const that = EventDispatcher();
   const defaultCallback = () => {};
   const messageBuffer = [];
@@ -24,7 +24,6 @@ const Socket = (newIo) => {
   that.DISCONNECTED = Symbol('disconnected');
 
   that.state = that.DISCONNECTED;
-  that.IO = newIo;
 
   let socket;
 
@@ -46,18 +45,9 @@ const Socket = (newIo) => {
   };
 
   that.connect = (token, callback = defaultCallback, error = defaultCallback) => {
-    const options = {
-      reconnect: true,
-      reconnectionAttempts: 25,
-      secure: token.secure,
-      transports: ['websocket'],
-    };
     const transport = token.secure ? 'wss://' : 'ws://';
-    let wsHost = token.host;
-    if (wsHost.charAt(wsHost.length - 1) === '/') {
-      wsHost = wsHost.substr(0, wsHost.length - 1);
-    }
-    socket = that.IO.connect(`${transport}${wsHost}/erizo`, options);
+    const wsHost = `${transport}${token.host}`;
+    socket = IOManager.connectToNamespace(wsHost, 'erizo');
     const clientId = token.tokenId;
 
     socket.on('onAddStream', emit.bind(that, 'onAddStream'));
