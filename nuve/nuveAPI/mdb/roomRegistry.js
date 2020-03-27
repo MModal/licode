@@ -19,6 +19,16 @@ exports.getRooms = function (callback) {
     });
 };
 
+exports.getRoomsForService = function (serviceId, callback) {
+    db.rooms.find({service: db.ObjectId(serviceId)}).toArray(function (err, rooms) {
+        if (err || !rooms) {
+            log.warn(`warn: getRoomsForService rooms not found for ${serviceId}. Error: ${logger.objectToLog(err)}`);
+            rooms = [];
+        }
+        callback(rooms);
+    });
+};
+
 exports.getRoomForService = function (id, serviceId, callback) {
     db.rooms.findOne({_id: db.ObjectId(id), service: db.ObjectId(serviceId)}, function (err, room) {
         if (err || !room) {

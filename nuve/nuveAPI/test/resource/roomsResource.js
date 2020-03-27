@@ -27,8 +27,8 @@ describe('Rooms Resource', function() {
     setServiceStub = sinon.stub();
     roomsResource = require('../../resource/roomsResource');
 
-    kArbitraryRoom = {'_id': '1', name: '', options: {p2p: true, data: ''}};
-    kArbitraryService = {'_id': '1', rooms: [kArbitraryRoom]};
+    kArbitraryRoom = {'_id': '1', name: 'arbitraryRoom', options: {p2p: true, data: ''}};
+    kArbitraryService = {'_id': '1'};
 
     app = express();
     app.use(bodyParser.json());
@@ -63,9 +63,10 @@ describe('Rooms Resource', function() {
 
     it('should return room if it exists', function(done) {
       setServiceStub.returns(kArbitraryService);
+      roomRegistryMock.getRoomsForService.callsArgWith(1, [kArbitraryRoom]);
       request(app)
         .get('/rooms')
-        .expect(200, JSON.stringify(kArbitraryService.rooms))
+        .expect(200, JSON.stringify([kArbitraryRoom]))
         .end(function(err) {
           if (err) throw err;
           done();
@@ -99,7 +100,7 @@ describe('Rooms Resource', function() {
 
     it('should create test rooms', function(done) {
       setServiceStub.returns(kArbitraryService);
-      roomRegistryMock.addRoom.callsArgWith(1, kTestRoom);
+      roomRegistryMock.addRoom.callsArgWith(2, kTestRoom);
       request(app)
         .post('/rooms')
         .send(kTestRoom)
@@ -128,15 +129,15 @@ describe('Rooms Resource', function() {
 
     it('should create normal rooms', function(done) {
       setServiceStub.returns(kArbitraryService);
-      roomRegistryMock.addRoom.callsArgWith(1, kTestRoom);
+      roomRegistryMock.addRoom.callsArgWith(2, kArbitraryRoom);
       request(app)
         .post('/rooms')
         .send(kArbitraryRoom)
-        .expect(200, JSON.stringify(kTestRoom))
+        .expect(200, JSON.stringify(kArbitraryRoom))
         .end(function(err) {
           if (err) throw err;
           expect(roomRegistryMock.addRoom.called).to.be.true;  // jshint ignore:line
-          expect(serviceRegistryMock.updateService.called).to.be.true;  // jshint ignore:line
+          // expect(serviceRegistryMock.updateService.called).to.be.true;  // jshint ignore:line
           done();
         });
     });

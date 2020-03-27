@@ -1,6 +1,7 @@
 /*global exports, require*/
 'use strict';
 var roomRegistry = require('./../mdb/roomRegistry');
+var serviceRegistry = require('./../mdb/serviceRegistry');
 
 var logger = require('./../logger').logger;
 
@@ -67,6 +68,7 @@ exports.represent = function (req, res) {
         return;
     }
     log.info('message: representRooms, serviceId: ' + currentService._id);
-
-    res.send(currentService.rooms);
+    roomRegistry.getRoomsForService(currentService, function (rooms) {
+        res.send(rooms);
+    });
 };
