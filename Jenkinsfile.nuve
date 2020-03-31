@@ -24,7 +24,7 @@ node('Scribe_Centos_01') {
         stage('Build') {
             echo "Will use artifactory ${env.ARTIFACTORY_DOCKER_REGISTRY} and ${env.ECR_DOCKER_REGISTRY}"
             checkout scm
-            sh 'cd scripts; python -u service_detect.py --dockerfile ./docker/nuve/Dockerfile --artifactoryreg ${env.ARTIFACTORY_DOCKER_REGISTRY} --ecrreg ${env.ECR_DOCKER_REGISTRY} --servicename licode-nuve --workingdir .. build'
+            sh 'cd scripts; python -u service_detect.py --dockerfile ./docker/nuve/Dockerfile --artifactoryreg env.ARTIFACTORY_DOCKER_REGISTRY --ecrreg env.ECR_DOCKER_REGISTRY --servicename licode-nuve --workingdir .. build'
             stash includes: '*.tar', name: 'dockerImage'
             stash includes: '*.id', name: 'dockerID'
         }
@@ -32,7 +32,7 @@ node('Scribe_Centos_01') {
         stage('Publish'){
             checkout scm
             unstash 'dockerID'
-            sh 'cd scripts; python -u service_detect.py --artifactoryreg ${env.ARTIFACTORY_DOCKER_REGISTRY} --ecrreg ${env.ECR_DOCKER_REGISTRY} --servicename licode-nuve publish'
+            sh 'cd scripts; python -u service_detect.py --artifactoryreg env.ARTIFACTORY_DOCKER_REGISTRY --ecrreg env.ECR_DOCKER_REGISTRY --servicename licode-nuve publish'
         }
   
         stage('Deploy'){
@@ -43,7 +43,7 @@ node('Scribe_Centos_01') {
     finally{
         stage('Cleanup'){
             unstash 'dockerID'
-            sh 'cd scripts; python -u service_detect.py --artifactoryreg ${env.ARTIFACTORY_DOCKER_REGISTRY} --ecrreg ${env.ECR_DOCKER_REGISTRY} --servicename licode-nuve cleanup'
+            sh 'cd scripts; python -u service_detect.py --artifactoryreg env.ARTIFACTORY_DOCKER_REGISTRY --ecrreg env.ECR_DOCKER_REGISTRY --servicename licode-nuve cleanup'
         }
     }
 }
