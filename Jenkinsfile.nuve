@@ -16,13 +16,13 @@ properties([
 // This means that the only requirement for our build agent is
 // a *nix box that can run bash scripts and has Docker installed.
 // We use the 'docker' tag to express this requirment.
-node('Scribe_Centos') {
+node('Scribe_Centos_01') {
 
     try{
         // Produces a docker image (using `docker build`) that contains the compiled
         // distribution files for the project, as well as acting as a production image
         stage('Build') {
-            echo "Will use artifactory ${env.ARTIFACTORY_DOCKER_REGISTRY} and ${env.ECR_DOCKER_REGISTRY}
+            echo "Will use artifactory ${env.ARTIFACTORY_DOCKER_REGISTRY} and ${env.ECR_DOCKER_REGISTRY}"
             checkout scm
             sh 'cd scripts; python -u service_detect.py --dockerfile ./docker/nuve/Dockerfile --artifactoryreg ${env.ARTIFACTORY_DOCKER_REGISTRY} --ecrreg ${env.ECR_DOCKER_REGISTRY} --servicename licode-nuve --workingdir .. build'
             stash includes: '*.tar', name: 'dockerImage'
@@ -36,7 +36,7 @@ node('Scribe_Centos') {
         }
   
         stage('Deploy'){
-            
+
         }    
 
     }    
