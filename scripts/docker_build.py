@@ -47,7 +47,6 @@ def get_parameters():
 #def main(service_path, default_tag="default"):
 def main(service_name, dockerfile, workingdir, artifactory_registry, ecr_registry):
     service_vars = common_vars.get_service_variables(service_name, artifactory_registry, ecr_registry)
-    branch = service_vars["branch"]
     artifactory_repo = service_vars["artifactory_repo"]
     ecr_repo = service_vars["ecr_repo"]
     version = service_vars["version"]
@@ -58,14 +57,10 @@ def main(service_name, dockerfile, workingdir, artifactory_registry, ecr_registr
     dockerBuildScript = """
         docker build \\
         -f {0} \\
-        -t {1}:latest-build \\
-        -t {1}:{3} \\
-        -t {1}:{4} \\    
-        -t {2}:latest-build \\
-        -t {2}:{3} \\
-        -t {2}:{4} \\
-        {5}
-    """.format(dockerfile, artifactory_repo, ecr_repo, unique_tag, version, workingdir).strip()
+        -t {1}:latest \\
+        -t {1}:{2} \\
+        {3}
+    """.format(dockerfile, artifactory_repo, unique_tag, workingdir).strip()
 
     #Execute the script to build the image
     print("Building the service image of {0} with script: \n{1}".format(service_name ,dockerBuildScript))
@@ -81,6 +76,19 @@ def main(service_name, dockerfile, workingdir, artifactory_registry, ecr_registr
     print("Saving the image id to file:" + image_id_file)
     write_to_file(image_id_file, image_id)
 
+    #Tag the image appropriately per version
+    version_tag_script = """
+                 docker tag {0} {1}:{3}
+                 docker tag {0} {2}:{3}
+                 docker tag {0} {2}:latest
+             """.format(image_id, artifactory_repo, ecr_repo, version)
+    
+    print("Tagging the docker image with version: %s " % version)
+    subprocess.check_output(
+        version_tag_script,
+        stderr=subprocess.STDOUT,
+        shell=True)
+
     #Save the docker image as a tar file to transfer to server.
     print("Saving the docker image as a tar file to: " + image_tar_file)
     save_image_script = "docker save -o {0} {1}:{2}".format(image_tar_file, artifactory_repo, version)
@@ -89,7 +97,7 @@ def main(service_name, dockerfile, workingdir, artifactory_registry, ecr_registr
     stderr=subprocess.STDOUT,
     shell=True)
 
-    print("Save succesfull. Build and save succesfull for {0}.".format(service_name))
+    print("Save succesfull. Build and save succesful for {0}.".format(service_name))
 
 if  __name__ == "__main__":
     parameters = get_parameters()
