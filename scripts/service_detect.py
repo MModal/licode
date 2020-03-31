@@ -4,7 +4,6 @@ import subprocess
 import common_vars 
 import docker_build
 import docker_push
-import docker_deploy
 import docker_cleanup
 import docker_run
 import sys
@@ -58,6 +57,8 @@ def get_parameters():
     parser.add_argument("--servicename", help="Name of the service")
     parser.add_argument("--workingdir", help="Path of the working directory")
     parser.add_argument("--default_tag", help="The default tag for services built on default is required.")
+    parser.add_argument("--artifactoryreg", help="Artifactory docker registry")
+    parser.add_argument("--ecrreg", help="ECR docker registry")
     
     args = parser.parse_args()
     if not (args.action):
@@ -72,6 +73,10 @@ def get_parameters():
         parameters.update({"dockerfile": args.dockerfile})
     if (args.workingdir):
         parameters.update({"workingdir": args.workingdir})
+    if (args.artifactoryreg):
+        parameters.update({"artifactoryreg": args.artifactoryreg})
+    if (args.ecrreg):
+        parameters.update({"ecrreg": args.ecrreg})
 
     return parameters
 
@@ -92,39 +97,20 @@ def main():
     try:
         if action == "build":
             print("Building: {0}".format(service_name))
-            docker_build.main(service_name, parameters["dockerfile"], parameters["workingdir"], default_tag)
+            docker_build.main(service_name, parameters["dockerfile"], parameters["workingdir"], parameters["artifactoryreg"], parameters["ecrreg"])
         elif action == "publish":
             print("Publishing: {0}".format(service_name))
-            docker_push.main(service_name)
-        elif action == "deploy":
-            image_tar_file = common_vars.get_service_variables(service_path)["image_tar_file"]
-            print("Deploying: {0}, with tar_file in: {1}".format(service_path, image_tar_file))
-            docker_deploy.main(service_path, image_tar_file)
+            docker_push.main(service_name, parameters["artifactoryreg"], parameters["ecrreg"])
         elif action == "cleanup":
-            docker_cleanup.main(service_name)
+            docker_cleanup.main(service_name, parameters["artifactoryreg"], parameters["ecrreg"])
         elif action == "run":
             docker_run.main(service_name)
         else:
-            print("Action not recognized. Please type 'build', 'publish', 'deploy', 'run', or cleanup")
-#        for service_path in service_paths:
-#            if action == "build":
-#                print("Building: {0}".format(service_path))
-#                docker_build.main(service_path, default_tag)
-#            elif action == "publish":
-#                print("Publishing: {0}".format(service_path))
-#                docker_push.main(service_path)
-#            elif action == "deploy":
-#                image_tar_file = common_vars.get_service_variables(service_path)["image_tar_file"]
-#                print("Deploying: {0}, with tar_file in: {1}".format(service_path, image_tar_file))
-#                docker_deploy.main(service_path, image_tar_file)
-#            elif action == "cleanup":
-#                docker_cleanup.main(service_path)
-#            else:
-#                print("Action not recognized. Please type 'build', 'publish', 'deploy', or cleanup")
+            print("Action not recognized. Please type 'build', 'publish', 'run', or cleanup")
 
     except subprocess.CalledProcessError as e:
-        print e.output;
-        raise e;
+        print(e.output)
+        raise e
 
 if  __name__ == "__main__":
     main()

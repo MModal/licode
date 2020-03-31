@@ -114,48 +114,6 @@ def get_branch():
 
     return branch
 
-def get_version( service, default_tag, branch):
-    version = ""
-    is_versioned = False    
-    if branch == "default":
-         #Get the last tag.
-         if vcs_type == "hg":
-             pipe = subprocess.Popen(
-             "hg log -r \".\" --template \"{latesttag}\n\"",
-             shell=True,
-             stdout=subprocess.PIPE
-             )   
-             latest_tag = pipe.stdout.read()
-
-         elif vcs_type == "git":
-            pipe = subprocess.Popen(
-            ["git","describe","tags"],
-            shell = False,
-            stdout = subprcocess.PIPE
-            )
-            latest_tag = pipe.stdout.read()
-
-         #Try to find a version from the tag, and if it matches the service name use it. 
-         service_and_version = re.findall('(\w+-\d+\.\d+\.\d+(?!-))', latest_tag)
-
-         if service_and_version:
-             for match in service_and_version:
-                 service_name = re.search('\w+(?=-)',match).group()
-                 if service_name == service:
-                     found_version = re.search('\d+\.\d+\.\d+', match).group()
-                     version = found_version
-                     is_versioned = True
-                     return version, is_versioned 
-         
-         #Check if the tag is a release candidate, and if it matches the service name use it.
-         version = search_for_RC(latest_tag, service)
-
-         if not version:
-            version = default_tag 
-    else:
-        version = branch
-    return version, is_versioned
-
 def search_for_RC(latest_tag, service):
    version = ""
    service_and_version = re.findall(' \w+-\d+\.\d+\.\d+-RC',latest_tag)
@@ -165,33 +123,31 @@ def search_for_RC(latest_tag, service):
        if service_name == service:
            version = found_version
 
-def get_service_variables(service_name, default_tag="default"):
+def get_service_variables(service_name, artifactory_registry, ecr_registry):
 
     global vcs_type
     vcs_type = get_vcs_type()
 #    config = "docker_dev"
-    key_location = "~/scribe/Scribe-Dev.pem"
-    registry = "artifactory-pit.mmodal-npd.com/mmodal"
     branch = get_branch().lower()
-    version, is_versioned = get_version(service_name, default_tag, branch)
+    version = branch
     user,server = get_dev_server()
     container = service_name 
-    repo = registry + "/ffs/" + service_name
+    artifactory_repo = artifactory_registry + "/mmodal/ffs/" + service_name
+    ecr_repo = ecr_registry + "/mmodal/ffs/" + service_name
     image_tar_name = service_name + "-latest-build.tar"
     root = os.path.realpath(os.path.join(os.path.dirname(__file__), '..'))
     image_tar_file = root + "/" + image_tar_name
     image_id_file = root + "/" + service_name + ".latest.build.id"
     branch_id = get_branch_id()
-    build_number = "";
+    build_number = ""
     try:
-        build_number = os.environ['BUILD_NUMBER'].strip();
+        build_number = os.environ['BUILD_NUMBER'].strip()
     except KeyError:
         print("No environment variable detected for Build Number, using default of 99 instead")
-        build_number = 99;
+        build_number = 99
     unique_tag = "build-{0}-{1}-{2}".format(branch, branch_id, build_number)
 #    network = get_network(config, config_path)
 #    volume = get_volume(config, config_path) 
 #    flags = get_from_config_file(config_path, config, "flags")
-    
     service_variables = dict(locals())
     return service_variables
