@@ -48,7 +48,7 @@ def main(service_name, artifactory_registry, ecr_registry):
     artifactory_login(artifactory_user, artifactory_password, artifactory_registry)
     
     artifactory_repo = service_vars["artifactory_repo"]
-    ecr_repo = service_name["ecr_repo"]
+    ecr_repo = service_vars["ecr_repo"]
     image_id_file = service_vars["image_id_file"]
     unique_tag = service_vars["unique_tag"]
     image_id = read_from_file(image_id_file)
