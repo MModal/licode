@@ -33,7 +33,7 @@ node('Scribe_Centos_01') {
         }
         
         stage('Publish'){
-            checkout scm
+            //checkout scm
             unstash 'dockerID'
             sh 'cd scripts; python -u service_detect.py --artifactoryreg $ARTIFACTORY_DOCKER_REGISTRY --ecrreg $ECR_DOCKER_REGISTRY --servicename licode-nuve publish'
         }
