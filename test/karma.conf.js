@@ -9,22 +9,29 @@ module.exports = function(config) {
 
 
     // frameworks to use
-    frameworks: ['jasmine'],
+    frameworks: ['jasmine', 'browserify'],
 
 
     // list of files / patterns to load in the browser
     files: [
-      'erizo-test.js',
-      '../erizo_controller/erizoClient/dist/erizo.js',
-      '../nuve/nuveClient/build/nuve.js',
+      // 'erizo-test.js',
+      'nuve-api-spec.js',
+      // '../erizo_controller/erizoClient/dist/erizo.js',
+      'nuve.js',
       '../licode_config.js'
     ],
 
+    preprocessors: {
+      'nuve-api-spec.js': [ 'browserify' ],
+      'nuve.js': [ 'browserify' ]
+   },
 
     // list of files to exclude
     exclude: [
       
     ],
+
+    // plugins: ['karma-jasmine', 'karma-browserify'],
 
 
     // test results reporter to use
@@ -42,7 +49,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_DISABLE,
+    logLevel: config.LOG_DEBUG,
 
 
     // enable / disable watching file and executing tests whenever any file changes
@@ -76,6 +83,12 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, it capture browsers, run tests and exit
-    singleRun: true
+    singleRun: true,
+
+    client: {
+      jasmine: {
+        random: false,
+      }
+    }
   });
 };

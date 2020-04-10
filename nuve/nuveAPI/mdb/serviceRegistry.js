@@ -80,5 +80,7 @@ exports.removeService = function (id) {
  * Gets a determined room in a determined service. Returns undefined if room does not exists.
  */
 exports.getRoomForService = function (roomId, service, callback) {
-    roomRegistry.getRoomForService(roomId, service._id, callback);
+    //convert ObjectId to String, if needed
+    const sId = service._id + '';
+    roomRegistry.getRoomForService(roomId, sId, callback);
 };

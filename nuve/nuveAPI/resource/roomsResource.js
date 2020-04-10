@@ -63,12 +63,13 @@ exports.createRoom = function (req, res) {
  */
 exports.represent = function (req, res) {
     var currentService = req.service;
-    if (currentService === undefined) {
+    if (!currentService) {
         res.status(404).send('Service not found');
         return;
     }
     log.info('message: representRooms, serviceId: ' + currentService._id);
-    roomRegistry.getRoomsForService(currentService, function (rooms) {
+    const sId = currentService._id + '';
+    roomRegistry.getRoomsForService(sId, function (rooms) {
         res.send(rooms);
     });
 };
