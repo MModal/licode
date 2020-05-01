@@ -18,7 +18,7 @@ def get_parameters():
 
 def main(service_name, artifactory_registry, ecr_registry):
     service_vars = common_vars.get_service_variables(service_name, artifactory_registry, ecr_registry)
-    repo = service_vars["repo"]
+    repo = service_vars["artifactory_repo"]
     version = service_vars["version"]
     container = service_vars["container"]
     
