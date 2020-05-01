@@ -29,7 +29,8 @@ var dbEntry = function() {
     findOne: sinon.stub(),
     save: sinon.stub(),
     update: sinon.stub(),
-    remove: sinon.stub()
+    remove: sinon.stub(),
+    replaceOne: sinon.stub()
   };
 };
 
@@ -60,7 +61,10 @@ var reset = module.exports.reset = function() {
     hasRoom: sinon.stub(),
     addRoom: sinon.stub(),
     updateRoom: sinon.stub(),
-    removeRoom: sinon.stub()
+    removeRoom: sinon.stub(),
+    removeRoomsForService: sinon.stub(),
+    getRoomForService: sinon.stub(),
+    getRoomsForService: sinon.stub()
   });
 
   module.exports.tokenRegistry = createMock('../mdb/tokenRegistry', {
@@ -138,7 +142,11 @@ var reset = module.exports.reset = function() {
   });
 
   module.exports.licodeConfig = createMock('./../../../licode_config', {
-    logger: {configFile: true},
+    // logger: {configFile: true},
+    logger: {configFile: {
+      appenders: {testing: {"type": "console", "layout": {"type": "pattern", "pattern": "%d  - %p: %c - %m", "replaceConsole": true}}},
+      categories: { default: { appenders: ['testing'], level: 'debug' } }
+    }},
     cloudProvider: {host: ''}
   });
 };

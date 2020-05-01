@@ -4,6 +4,8 @@ var db = require('./dataBase').db;
 
 var logger = require('./../logger').logger;
 
+var roomRegistry = require('./roomRegistry');
+
 // Logger
 var log = logger.getLogger('ServiceRegistry');
 
@@ -45,7 +47,6 @@ var hasService = exports.hasService = function (id, callback) {
  * Adds a new service to the data base.
  */
 exports.addService = function (service, callback) {
-    service.rooms = [];
     db.services.save(service, function (error, saved) {
         if (error) log.info('message: addService error, ' + logger.objectToLog(error));
         callback(saved._id);
@@ -67,6 +68,7 @@ exports.updateService = function (service) {
 exports.removeService = function (id) {
     hasService(id, function (hasS) {
         if (hasS) {
+            roomRegistry.removeRoomsForService(id);
             db.services.remove({_id: db.ObjectId(id)}, function (error) {
                 if (error) log.info('message: removeService error, ' + logger.objectToLog(error));
             });
@@ -78,14 +80,7 @@ exports.removeService = function (id) {
  * Gets a determined room in a determined service. Returns undefined if room does not exists.
  */
 exports.getRoomForService = function (roomId, service, callback) {
-    var room;
-    for (room in service.rooms) {
-        if (service.rooms.hasOwnProperty(room)) {
-            if (String(service.rooms[room]._id) === String(roomId)) {
-                callback(service.rooms[room]);
-                return;
-            }
-        }
-    }
-    callback(undefined);
+    //convert ObjectId to String, if needed
+    const sId = service._id + '';
+    roomRegistry.getRoomForService(roomId, sId, callback);
 };

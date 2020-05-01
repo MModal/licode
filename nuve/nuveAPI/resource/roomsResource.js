@@ -34,9 +34,8 @@ exports.createRoom = function (req, res) {
             res.send(currentService.testRoom);
         } else {
             room = {name: 'testRoom'};
-            roomRegistry.addRoom(room, function (result) {
+            roomRegistry.addRoom(room, currentService, function (result) {
                 currentService.testRoom = result;
-                currentService.rooms.push(result);
                 serviceRegistry.updateService(currentService);
                 log.info('message: testRoom created, serviceId: ' + currentService.name);
                 res.send(result);
@@ -51,9 +50,7 @@ exports.createRoom = function (req, res) {
         if (req.body.options.data) {
             room.data = req.body.options.data;
         }
-        roomRegistry.addRoom(room, function (result) {
-            currentService.rooms.push(result);
-            serviceRegistry.updateService(currentService);
+        roomRegistry.addRoom(room, currentService, function (result) {
             log.info('message: createRoom success, roomName:' + req.body.name + ', serviceId: ' +
                      currentService.name + ', p2p: ' + room.p2p);
             res.send(result);
@@ -66,11 +63,13 @@ exports.createRoom = function (req, res) {
  */
 exports.represent = function (req, res) {
     var currentService = req.service;
-    if (currentService === undefined) {
+    if (!currentService) {
         res.status(404).send('Service not found');
         return;
     }
     log.info('message: representRooms, serviceId: ' + currentService._id);
-
-    res.send(currentService.rooms);
+    const sId = currentService._id + '';
+    roomRegistry.getRoomsForService(sId, function (rooms) {
+        res.send(rooms);
+    });
 };

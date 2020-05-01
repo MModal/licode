@@ -9,16 +9,19 @@ var kArbitraryServiceId = '1';
 
 describe('Service Registry', function() {
   var serviceRegistry,
-      dataBase;
+      dataBase,
+      roomRegistry;
   beforeEach(function() {
     mocks.start(mocks.licodeConfig);
     dataBase = mocks.start(mocks.dataBase);
+    roomRegistry = mocks.start(mocks.roomRegistry);
     serviceRegistry = require('../../mdb/serviceRegistry.js');
   });
 
   afterEach(function() {
     mocks.stop(mocks.licodeConfig);
     mocks.stop(dataBase);
+    mocks.stop(roomRegistry);
     mocks.deleteRequireCache();
     mocks.reset();
   });
@@ -96,15 +99,21 @@ describe('Service Registry', function() {
     expect(dataBase.db.services.remove.called).to.be.true;  // jshint ignore:line
   });
 
+  // var service = {
+  //   rooms: {
+  //     '1': {'_id': 'roomId1'},
+  //     '2': {'_id': 'roomId2'},
+  //   }
+  // };
+
   var service = {
-    rooms: {
-      '1': {'_id': 'roomId1'},
-      '2': {'_id': 'roomId2'},
-    }
+    _id: 1
   };
 
   it('should return the room given its id when getRoomForService is called', function() {
     var callback = sinon.stub();
+    roomRegistry.getRoomForService.callsArgWith(2, {'_id': 'roomId1'});
+
     serviceRegistry.getRoomForService('roomId1', service, callback);
 
     expect(callback.args[0][0]).to.deep.equal({'_id': 'roomId1'});
@@ -112,6 +121,7 @@ describe('Service Registry', function() {
 
   it('should return the room given its id when getRoomForService is called', function() {
     var callback = sinon.stub();
+    roomRegistry.getRoomForService.callsArgWith(2, undefined);
     serviceRegistry.getRoomForService('roomId3', service, callback);
 
     expect(callback.args[0][0]).to.be.undefined;  // jshint ignore:line

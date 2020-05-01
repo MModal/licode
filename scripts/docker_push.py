@@ -22,7 +22,7 @@ def get_parameters():
 
     return parameters
 
-def docker_login(user, password, registry):
+def artifactory_login(user, password, registry):
     
     docker_login_command = "docker login -u " + user + " -p " + password + " " + registry
 
@@ -32,36 +32,63 @@ def docker_login(user, password, registry):
     shell=True
     )
 
-def main(service_name):
-    service_vars = common_vars.get_service_variables(service_name)
+def aws_login():
+    aws_login_command = "$(aws ecr get-login --no-include-email --region us-east-1)"
+
+    subprocess.check_output(
+        aws_login_command,
+        stderr=subprocess.STDOUT,
+        shell=True
+    )
+
+def main(service_name, artifactory_registry, ecr_registry):
+    service_vars = common_vars.get_service_variables(service_name, artifactory_registry, ecr_registry)
     artifactory_user = os.environ["ARTIFACTORY_USER"].strip()
     artifactory_password = os.environ["ARTIFACTORY_PASSWORD"].strip()
-    registry = service_vars["registry"]
-    root = service_vars["root"]
-    docker_login(artifactory_user, artifactory_password, registry)
+    artifactory_login(artifactory_user, artifactory_password, artifactory_registry)
     
-    repo = service_vars["repo"]
+    artifactory_repo = service_vars["artifactory_repo"]
+    ecr_repo = service_vars["ecr_repo"]
     image_id_file = service_vars["image_id_file"]
     unique_tag = service_vars["unique_tag"]
     image_id = read_from_file(image_id_file)
 
-    docker_push_script = """
+    artifactory_push_script = """
         docker images {0} | grep {1} | while read -r line; do
             tag=$(echo ${{line}} | awk '{{print $2}}')
             [[ "{2}" == "${{tag}}" ]] || docker push {0}:${{tag}}
-        done""".format(repo, image_id, unique_tag)
+        done""".format(artifactory_repo, image_id, unique_tag)
 
-    print("The docker script to run is: {0}".format(docker_push_script))
-    print("Pushing the docker images.")
+    print("The docker script for artifactory is: {0}".format(artifactory_push_script))
+    print("Pushing the docker images to artifactory.")
     
     subprocess.check_output(
-    docker_push_script,
+    artifactory_push_script,
     stderr=subprocess.STDOUT,
     shell=True
     )
-    print("Publish succesfull for {0}.".format(service_name))
+    print("Publish to artifactory command ran for {0}.".format(service_name))
+
+    aws_login()
+    ecr_push_script = """
+        docker images {0} | grep {1} | while read -r line; do
+            tag=$(echo ${{line}} | awk '{{print $2}}')
+            [[ "{2}" == "${{tag}}" ]] || docker push {0}:${{tag}}
+        done""".format(ecr_repo, image_id, unique_tag)
+    
+    print("The docker script for ECR is: {0}".format(ecr_push_script))
+    print("Pushing the docker images to ECR.")
+    
+    subprocess.check_output(
+        ecr_push_script,
+        stderr=subprocess.STDOUT,
+        shell=True
+    )
+    print("Push to ECR command ran for {0}.".format(service_name))
 
 if __name__ == "__main__":
     parameters = get_parameters()
     service_name = parameters["servicename"]
-    main(service_name)
+    artifactory_registry = parameters["artifactoryreg"]
+    ecr_registry = parameters["ecrreg"]
+    main(service_name, artifactory_registry, ecr_registry)

@@ -6,6 +6,7 @@ var expect  = require('chai').expect;
 
 var kArbitraryRoom = {name: 'arbitraryRoom'};
 var kArbitraryRoomId = '1';
+var kArbitraryService = {name: 'arbitraryService', _id: 1};
 
 describe('Room Registry', function() {
   var roomRegistry,
@@ -70,7 +71,7 @@ describe('Room Registry', function() {
   it('should call save on Database when calling addRoom', function() {
     var callback = sinon.stub();
     dataBase.db.rooms.save.callsArgWith(1, null, kArbitraryRoom);
-    roomRegistry.addRoom(kArbitraryRoom, callback);
+    roomRegistry.addRoom(kArbitraryRoom, kArbitraryService, callback);
 
     expect(dataBase.db.rooms.save.calledOnce).to.be.true;  // jshint ignore:line
     expect(callback.calledWith(kArbitraryRoom)).to.be.true;  // jshint ignore:line
@@ -79,7 +80,7 @@ describe('Room Registry', function() {
   it('should call update on Database when calling updateRoom', function() {
     roomRegistry.updateRoom(kArbitraryRoomId, kArbitraryRoom);
 
-    expect(dataBase.db.rooms.update.calledOnce).to.be.true;  // jshint ignore:line
+    expect(dataBase.db.rooms.replaceOne.calledOnce).to.be.true;  // jshint ignore:line
   });
 
   it('should call remove on Database when removeRoom is called and it exists', function() {

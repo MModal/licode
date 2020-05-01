@@ -17,34 +17,36 @@ properties([
 // a *nix box that can run bash scripts and has Docker installed.
 // We use the 'docker' tag to express this requirment.
 node('Scribe_Centos_01') {
-
+    environment {
+        ARTIFACTORY_DOCKER_REGISTRY = "${env.ARTIFACTORY_DOCKER_REGISTRY}"
+        ECR_DOCKER_REGISTRY = "${env.ECR_DOCKER_REGISTRY}"
+    }
     try{
         // Produces a docker image (using `docker build`) that contains the compiled
         // distribution files for the project, as well as acting as a production image
         stage('Build') {
+            echo "Will use artifactory ${ARTIFACTORY_DOCKER_REGISTRY} and ${ECR_DOCKER_REGISTRY}"
             checkout scm
-            sh 'cd scripts; python -u service_detect.py --default_tag default-CI --dockerfile ./docker/nuve/Dockerfile --servicename licode-nuve --workingdir .. build'
+            sh 'cd scripts; python -u service_detect.py --dockerfile ./docker/nuve/Dockerfile --artifactoryreg $ARTIFACTORY_DOCKER_REGISTRY --ecrreg $ECR_DOCKER_REGISTRY --servicename licode-nuve --workingdir .. build'
             stash includes: '*.tar', name: 'dockerImage'
             stash includes: '*.id', name: 'dockerID'
         }
         
         stage('Publish'){
-            checkout scm
+            //checkout scm
             unstash 'dockerID'
-            sh 'cd scripts; python -u service_detect.py --default_tag default-CI --servicename licode-nuve publish'
+            sh 'cd scripts; python -u service_detect.py --artifactoryreg $ARTIFACTORY_DOCKER_REGISTRY --ecrreg $ECR_DOCKER_REGISTRY --servicename licode-nuve publish'
         }
   
         stage('Deploy'){
-            //checkout scm
-            //unstash 'dockerImage'
-            //sh 'cd scripts; python -u service_detect.py --default_tag default-CI deploy'
+
         }    
 
     }    
     finally{
         stage('Cleanup'){
             unstash 'dockerID'
-            sh 'cd scripts; python -u service_detect.py --servicename licode-nuve cleanup'
+            sh 'cd scripts; python -u service_detect.py --artifactoryreg $ARTIFACTORY_DOCKER_REGISTRY --ecrreg $ECR_DOCKER_REGISTRY --servicename licode-nuve cleanup'
         }
     }
 }

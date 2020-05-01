@@ -17,7 +17,8 @@ describe('Room Resource', function() {
       serviceRegistryMock,
       nuveAuthenticatorMock,
       roomRegistryMock,
-      erizoControllerRegistryMock;
+      erizoControllerRegistryMock,
+      cloudHandlerMock;
 
   beforeEach(function() {
     mocks.start(mocks.licodeConfig);
@@ -25,6 +26,7 @@ describe('Room Resource', function() {
     roomRegistryMock = mocks.start(mocks.roomRegistry);
     nuveAuthenticatorMock = mocks.start(mocks.nuveAuthenticator);
     erizoControllerRegistryMock = mocks.start(mocks.erizoControllerRegistry);
+    cloudHandlerMock = mocks.start(mocks.cloudHandler);
     setServiceStub = sinon.stub();
     roomResource = require('../../resource/roomResource');
     app = express();
@@ -44,6 +46,7 @@ describe('Room Resource', function() {
     mocks.stop(roomRegistryMock);
     mocks.stop(serviceRegistryMock);
     mocks.stop(nuveAuthenticatorMock);
+    mocks.stop(cloudHandlerMock);
     mocks.stop(erizoControllerRegistryMock);
     mocks.deleteRequireCache();
     mocks.reset();
@@ -195,6 +198,7 @@ describe('Room Resource', function() {
 
     it('should delete room if it exists', function(done) {
       serviceRegistryMock.getRoomForService.callsArgWith(2, kArbitraryRoom);
+      cloudHandlerMock.deleteRoom.callsArg(1);
       setServiceStub.returns(kArbitraryService);
       request(app)
         .delete('/rooms/1')
