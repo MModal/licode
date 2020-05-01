@@ -16,8 +16,8 @@ def get_parameters():
 
     return parameters
 
-def main(service_name, default_tag="default"):
-    service_vars = common_vars.get_service_variables(service_name, default_tag)
+def main(service_name, artifactory_registry, ecr_registry):
+    service_vars = common_vars.get_service_variables(service_name, artifactory_registry, ecr_registry)
     repo = service_vars["repo"]
     version = service_vars["version"]
     container = service_vars["container"]
@@ -37,4 +37,4 @@ def main(service_name, default_tag="default"):
 
 if  __name__ == "__main__":
     parameters = get_parameters()
-    main(parameters["servicename"])
+    main(parameters["servicename"], parameters["artifactoryreg"], parameters["ecrreg"])

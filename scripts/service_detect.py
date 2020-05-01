@@ -104,7 +104,7 @@ def main():
         elif action == "cleanup":
             docker_cleanup.main(service_name, parameters["artifactoryreg"], parameters["ecrreg"])
         elif action == "run":
-            docker_run.main(service_name)
+            docker_run.main(service_name, parameters["artifactoryreg"], parameters["ecrreg"])
         else:
             print("Action not recognized. Please type 'build', 'publish', 'run', or cleanup")
 
