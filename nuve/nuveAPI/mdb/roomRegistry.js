@@ -41,6 +41,18 @@ exports.getRoomForService = function (id, serviceId, callback) {
     });
 };
 
+exports.getRoomByNameForService = function (name, serviceId, callback) {
+    db.rooms.findOne({name: name, service: db.ObjectId(serviceId)}, function (err, room) {
+        if (err || !room) {
+            log.warn(`warn: getRoomByNameForService room not found with name ${name} for ${serviceId}. Error: ${logger.objectToLog(err)}`);
+            room = undefined;
+        } else {
+            log.info(`message: getRoomByNameForService found room ${JSON.stringify(room)} for name ${name} and service ${serviceId}`);
+        }
+        callback(room);
+    });
+};
+
 var getRoom = exports.getRoom = function (id, callback) {
     db.rooms.findOne({_id: db.ObjectId(id)}, function (err, room) {
         if (room === undefined) {

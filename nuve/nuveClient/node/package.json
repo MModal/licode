@@ -1,0 +1,20 @@
+{
+  "name": "@mmodal/nuve-client",
+  "version": "4.4.0",
+  "description": "Licode nuve client",
+  "main": "nuve.js",
+  "files": [
+    "nuve.js"
+  ],
+  "artifactRepo": {
+    "root": "https://artifactory-pit.mmodal-npd.com/artifactory/",
+    "path": "com/mmodal/nuve-client"
+  },
+  "publishConfig": {
+    "registry": "https://artifactory-pit.mmodal-npd.com/artifactory/api/npm/internal-npm-pit"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["Scribe", "Nuve"]
+}

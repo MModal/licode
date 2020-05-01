@@ -45,11 +45,37 @@ describe("nuve", function () {
         });
     });
 
-    it("should get normal rooms", function (done) {
+    it("should get normal room", function (done) {
         N.API.getRoom(id, function(result) {
+            assert.isNotNull(result);
             done();
         }, function(error) {
             throw error;
+        });
+    });
+
+    it("should get normal room by name", function (done) {
+        N.API.getRoomByName(ROOM_NAME, function(result) {
+            assert.isNotNull(result);
+            done();
+        }, function(error) {
+            throw error;
+        });
+    });
+
+    it("should not get normal room by bad name", function (done) {
+        N.API.getRoomByName("bad", function(result) {
+            throw "Should not have found a room";
+        }, function(error) {
+            done();
+        });
+    });
+
+    it("should not get normal room by empty name", function (done) {
+        N.API.getRoomByName(null, function(result) {
+            throw "Should not have found a room";
+        }, function(error) {
+            done();
         });
     });
 

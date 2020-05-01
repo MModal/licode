@@ -58,6 +58,7 @@ app.delete('*', nuveAuthenticator.authenticate);
 app.post('/rooms', roomsResource.createRoom);
 app.get('/rooms', roomsResource.represent);
 
+app.get('/rooms/name/:room', roomResource.getByName);
 app.get('/rooms/:room', roomResource.represent);
 app.put('/rooms/:room', roomResource.updateRoom);
 app.patch('/rooms/:room', roomResource.patchRoom);

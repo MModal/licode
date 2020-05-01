@@ -37,6 +37,24 @@ exports.represent = function (req, res) {
 };
 
 /*
+ * Get room by name
+ */
+exports.getByName = function (req, res) {
+    roomRegistry.getRoomByNameForService(req.params.room, req.service._id + '', function (currentRoom) {
+        if (req.service === undefined) {
+            res.status(401).send('Client unathorized');
+        } else if (currentRoom === undefined) {
+            log.info('message: getByName - room does not exits, name: ' + req.params.room);
+            res.status(404).send('Room does not exist');
+        } else {
+            log.info('message: getByName success, roomId: ' + currentRoom._id +
+                ', serviceId: ' + req.service._id);
+            res.send(currentRoom);
+        }
+    });
+}
+
+/*
  * Update Room.
  */
 exports.updateRoom = function (req, res) {
